@@ -4,3 +4,4 @@
 .vscode
 music/*.ogg
 music/dist/*.ogg
+dist/*

@@ -48,7 +48,7 @@ if CONFIG.is_release_mode():
     print("Packing resource pack...")
     zip_directory(CONFIG.debug_respack_path(), dist / f"Disc Art Additions [Ver {CONFIG.version()}].zip")
     print("Packing sound pack...")
-    SOUND_PACK = dist / f"soundpack.zip"
+    SOUND_PACK = dist / f"Disc's Cores [Ver {CONFIG.version()}].zip"
     zip_directory(CONFIG.debug_soundpack_path(), SOUND_PACK)
     print("Hashing sound pack...")
     print("Sound pack hash:", sha1_file(SOUND_PACK))
