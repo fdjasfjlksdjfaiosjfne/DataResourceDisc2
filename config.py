@@ -21,10 +21,10 @@ class Config:
             
             if self.is_debug_mode():
                 with open(p / "_test_path.json") as f:
-                    o = json.dump(f)
-                    self._datapack_path = o["datapack"]
-                    self._respack_path = o["respack"]
-                    self._soundpack_path = o["soundpack"]
+                    o = json.load(f)
+                    self._datapack_path = Path(o["datapack"])
+                    self._respack_path = Path(o["respack"])
+                    self._soundpack_path = Path(o["soundpack"])
             else:
                 self._datapack_path = p / "dist/unextracted/datapack"
                 self._respack_path = p / "dist/unextracted/respack"

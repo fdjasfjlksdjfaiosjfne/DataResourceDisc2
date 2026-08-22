@@ -1,11 +1,11 @@
 from pathlib import Path
 import json
 from config import Config
-from zipfile import ZipFile, ZIP_BZIP2
+from zipfile import ZipFile, ZIP_DEFLATED
 from hashlib import sha1
 
 def zip_directory(source: Path, destination: Path):
-    with ZipFile(destination, "w", compression = ZIP_BZIP2, compresslevel = 9) as zip:
+    with ZipFile(destination, "w", compression = ZIP_DEFLATED, compresslevel = 9) as zip:
         for file in source.rglob("*"):
             if file.is_file():
                 zip.write(file, file.relative_to(source))

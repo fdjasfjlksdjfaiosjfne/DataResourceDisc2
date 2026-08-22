@@ -123,8 +123,8 @@ def load_function() -> str:
 def tick_function() -> str:
     return \
         f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run dialog show @s {CONFIG.our_namespace()}:disc_selection\n" \
-        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players enable @a[predicate={CONFIG.our_namespace()}:request_disc_ui] disc_art_ui\n" \
-        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players set @a[predicate={CONFIG.our_namespace()}:request_disc_ui] disc_art_ui 0\n" \
+        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players enable @a[predicate={CONFIG.our_namespace()}:request_disc_ui] {CONFIG.objective("trigger_ui")}\n" \
+        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players set @a[predicate={CONFIG.our_namespace()}:request_disc_ui] {CONFIG.objective("trigger_ui")} 0\n" \
         f"execute as @a[scores={{{CONFIG.objective("select_disc")}=1..}}] run function {CONFIG.our_namespace()}:apply_disc\n" \
         f"execute as @a[scores={{{CONFIG.objective("select_disc")}=-1}}] run function {CONFIG.our_namespace()}:restore_disc\n" \
         f"execute as @a[predicate={CONFIG.our_namespace()}:{CONFIG['names']['predicate']['pack_info']}] run function {CONFIG.our_namespace()}:info"
