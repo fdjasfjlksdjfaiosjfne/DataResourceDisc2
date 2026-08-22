@@ -1,0 +1,6 @@
+**/_*
+**/_*.*
+*.code-workspace
+.vscode
+music/*.ogg
+music/dist/*.ogg
