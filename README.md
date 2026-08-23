@@ -14,26 +14,28 @@ There are three packs that is generated.
 # Parts
 
 The actual genarator consists of four script files.
-- `main.py`: Run this script to generate the texture pack.
+- `main.py`: Get the generator up and running.
 - `respack.py`: Generates the resource pack and the sound pack.
 - `datapack.py`: Generates the datapack.
-- `config.py`: Contains a typed version of `config.py` so I don't have to deal with a dictionary.
+- `config.py`: Contains a typed version of `data.json` so I don't have to deal with a dictionary.
 
 `_test_path.json` contains three paths, that are used to extract directly to a folder, mostly for debugging purposes. I made Git ignored it for...privacy reasons.
 `data.json` contains all the other data needed for `main.py`.
 
 There are also three standalone one-off scripts.
-- `add-length.json`: Write `length` into song entries in `data.json`. 
+- `add-length.py`: Write `length` into song entries in `data.json`.
 - `music/!convert.py`: Re-encodes all music files in its directory to Vorbis `.ogg` files.
 - `music/!compress.py`: Compress all Vorbis `.ogg` files and place them in `music/dist`.
 
 # Dependencies
-The main generator can run on nothing but the standard library as of Python 3.14.
-However, it does accept `json5` to generate `.json5` files, which is used by Respackopts. The `json` package is used instead, if `json5` doesn't exist.
+The main generator depends on stdlib libraries as of Python 3.14.0.
+In addition, it also uses the following libraries if it exists:
+- `json5`: Use to generate `.json5` files, which Respackopts uses. Uses `json` if it is not there.
+
 All three one-off scripts require:
 - `pydub`: A high-level wrapper for the legendary `ffmpeg` binary. Or `libav`.
-- `ffmpeg` or `libav`: Require for `pydub` to work. What, you thought `pydub` just does it for you?
-- `audioop-lts`: Require for `pydub` to work. Only nessecary since Python 3.13.
+- `ffmpeg` or `libav` *binary*: Require for `pydub` to work. What, you thought `pydub` just does it for you?
+- `audioop-lts`: Require for `pydub` to work. Only nessecary since Python 3.13 since it is on the standard library before then.
 
 # Quick Start
 
@@ -59,7 +61,9 @@ If you want to run this project from square one (not sure why but ok), here's yo
 8. Open the terminal on that directory and run `python main.py`
 
 # How to Synthesize Your Own Collection Of Discs
-Chances are, if you want to clone this, you want to use this as a baseline to make your own texture pack, with your own collection of music.
+Chances are, if you want to clone this, you want to use this as a baseline to make your own resource pack, with your own collection of music.
+
+<sup>(Why did I do this to myself...)</sup>
 
 You'd only really need to mess with `data.json`, the `music` folder, and the `textures` folder in that case.
 ### Modifying `data.json`
@@ -137,133 +141,136 @@ The generator uses the song ID and variation ID to find the right texture. So ag
 "Frequently Asked Questions"? More like, "questions that I have a feeling some guy, if there is one at all, may asked after take a look at this crappy codebase".
 But the acronym "QTIHAFSGITIOAAMAATALATCC" isn't very memorable nor familiar, so anyway:
 
-##### Why is the `music/` folder empty?
+#### Why is the `music/` folder empty?
 
 A few music here are not royalty-free and/or not allowed to distribute freely as a music file on some random repo. I just make Git ignore all of them in the source. I'm not taking any chances.
 If you do want to do what music is used in my server though, look at `data.json`.
 
-##### I just look at your list. What the hell is your music taste?
+#### I just look at your list. What the hell is your music taste?
 
 The list here is a collection of multiple people's tastes. I don't judge any of their tastes and yet you do. Get a grip.
 
-##### Can I join your server?
+#### Can I join your server?
 
 No.
 
-##### What does it look like?
+#### What does it look like?
 
 Shove them in Minecraft and check it for yourself.
 It's not gonna infect your computer or anything. They're just resource packs and data packs.
 Unless Minecraft has a CVE I'm not aware of. But I'm not aware of it either way so it's fine.
 
-##### Why split into two resource packs?
+#### Why split into two resource packs?
 
-As of now, the sound files have exceed 40MB+, and will only increase in the future, so I decided to split it so I can send the resource pack with the visuals on Discord (which are updated more frequently).
+As of now, the sound files have exceed 40MB+, and will only increase in the future, so I decided to split it so I can send the resource pack with the visuals on Discord (which are updated more frequently), while the sound files are downloaded separately via the resource pack, and updated less frequently.
+
 Why wouldn't I move the textures over as well? Respackopts would be no use otherwise.
 
-##### Does this generator have OptiFine support?
+#### Does this generator have OptiFine support?
 
 This pack generator currently does not generate any OptiFine/MCPatcher files since I found no use for it, for now.
 
-##### Can you add \[insert music name here]?
+#### Can you add \[insert music name here]?
 
 If you play on my server, sure. Otherwise, clone the repo and do it yourself.
 Look into [this section](#how-to-synthesize-your-own-collection-of-discs) for an explanation on how to do it.
 
-##### Can you tell me how the code works?
+#### Can you tell me how the code works?
 
 Ask AI.
 
-##### Can a custom disc fall back to a vanilla texture?
+#### Can a custom disc fall back to a vanilla texture?
 
 Not at the moment.
 
-##### What version of Python is this thing running on?
+#### What version of Python is this thing running on?
 
 Python 3.14.0, any questions?
 
-##### Can this run on older Python 3.x versions?
+#### Can this run on older Python 3.x versions?
 
 Possibly. The older the version, the less likely it gets.
 
-##### Can this run on Python 2.x?
+#### Can this run on Python 2.x?
 
 No.
 
-##### Why are there two separate scripts for converting and compressing?
+#### Why are there two separate scripts for converting and compressing?
 
 They are made at two different time periods. I can't be bothered to merge them.
 
-##### Can you port this pack to \[insert Minecraft version here]?
+#### Can you port this pack to \[insert Minecraft version here]?
 
 Only if *my* server moves to that version. Otherwise, no.
 
-##### Why don't you use TOML for `data.json` and `_test_path.json`?
+#### Why don't you use TOML for `data.json` and `_test_path.json`?
 
 Actually...yea you might be right.
 The structure is *somewhat similar* to what TOML would be written in as well.
 But welp, JSON is already done, so it is here to stay.
 (And also, i guess, less dependencies? Minecraft uses JSON anyway.)
 
-##### Some names here are pretty goofy, why is that?
-
-Fun isn't forbidden.
-
-##### Would you switch to TOML in that case?
+#### Would you switch to TOML in that case?
 
 Mayhaps.
 
-##### Can you port this pack to Bedrock?
+#### Some names here are pretty goofy, why is that?
+
+Fun isn't forbidden.
+
+#### Can you port this pack to Bedrock?
 
 No.
 
-##### How do you get the soundpack's SHA-1?
+#### How do you get the soundpack's SHA-1?
 
 Open `data.json` and set `mode` to `release`. The SHA-1 will be printed in the console.
 
-##### How to build or clone this repo?
+#### How to build or clone this repo?
 
 Do it yourself.
 
-##### Who made the textures?
+#### Who made the textures?
 
 Me and my friend. Neither are proficient at pixel art, but one is definitely better than the other.
 
-##### What software do you two use to make textures?
+#### What software do you two use to make textures?
 
-Me: Piskel, now Aseprite (build from source) bc why not?
-Him: idrk some app on Steam that looks like an old Android app escaping containment.
+- Me: Piskel, now Aseprite (build from source) bc why not?
+- Him: idrk some app on Steam that looks like an old Android app escaping containment.
 
-##### What texture files in here are free to use?
+#### What texture files in here are free to use?
 
 The ones that you don't want to use.
 (Ok for real, idk how my friend would want his assets be handled so...)
 
-##### Are you or your friend willing to make new textures for me?
+#### Are you or your friend willing to make new textures for me?
 
-Me: Sorry, no. Even with money. I have things to do.
-Him: Not any time soon.
+- Me: Sorry, no. Even with money. I have things to do.
+- Him: Not any time soon.
 
-##### Are there any license for this?
+#### Are there any license for this?
 
 This is meant to be used for personal purposes, but if you insist...
 
-Music files: Belong to the respective artists.
-Texture files: Ehhhhhhhhhhhhhhhhhh...Not sure why you'd need it unless you have the same music interest as us anyway...
-Code: Go on and use them. Credits would be nice (and don't you dare mispell my beautiful name 😈) but I really don't care at the end of the day.
+- Music files: Belong to the respective artists.
 
-##### Is AI used in the process of this project?
+- Texture files: Ehhhhhhhhhhhhhhhhhh...Not sure why you'd need it unless you have the same music interest as us anyway...
+
+- Code: Go on and use them. Credits would be nice (and don't you dare mispell my beautiful name 😈) but I really don't care at the end of the day.
+
+#### Is AI used in the process of this project?
 
 All lines of code are written by me.
 I do ask ChatGPT sometimes when I can't figure out a bug in the generator. But I still write the code *by myself* to my understanding afterwards.
 The textures are completely AI-free. Can AI even generate 16x16 pixel art in the first place? I can't tell.
 
-##### How long did this took?
+#### How long did this took?
 
 One or two weeks, mostly working on-and-off, and adding random features.
 Plus one sleepless night to implement Respackopts.
 
-##### Do you really need to write this README down?
+#### Do you really need to write this README down?
 
 No. I do anyway, and there's nothing you can do about it.
 Best and worst 6 hours of my life.
