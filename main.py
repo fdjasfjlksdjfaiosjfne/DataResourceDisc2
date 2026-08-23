@@ -44,7 +44,7 @@ respack.init()
 if CONFIG.is_release_mode():
     dist = Path(__file__).parent / "dist"
     print("Packing datapack...")
-    zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc Datapack Thing [Ver {CONFIG.version()}].zip")
+    zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc Datapack Thing [Ver 1.{CONFIG.version()}].zip")
     print("Packing resource pack...")
     zip_directory(CONFIG.debug_respack_path(), dist / f"Disc Art Additions [Ver {CONFIG.version()}].zip")
     print("Packing sound pack...")
