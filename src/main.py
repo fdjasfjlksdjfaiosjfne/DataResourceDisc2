@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from config import Config
+from src.config import Config
 from zipfile import ZipFile, ZIP_DEFLATED
 from hashlib import sha1
 
@@ -38,7 +38,7 @@ for i in CONFIG.disc_index():
 if not (Path(__file__).parent / "textures/missing.png").exists():
     print("\\e[0;91mmissing.png does not exist. The generator does not have a failsafe for this and will crash if it is needed.\\e[0m")
 
-import datapack, respack
+import src.datapack as datapack, src.respack as respack
 datapack.init()
 respack.init()
 if CONFIG.is_release_mode():

@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Callable
-from config import Config, DiscSpec
+from src.config import Config, DiscSpec
 import json
 try:
     import json5
@@ -294,6 +294,8 @@ def efciuids(display: str, config_id: str) -> str:
     for i, j in FORMATTING_LIST.items():
         display.replace(i, "${UI%s}" % j)
     return display + "${RTINFOUI%s}" % config_id
+
+
 
 def lang_json_rpo() -> str:
     rTT = f"{config.respackopts_namespace()}.misc.redstoneTweaksTooltip"

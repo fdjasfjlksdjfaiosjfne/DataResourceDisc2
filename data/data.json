@@ -1,7 +1,7 @@
 {
     "mode": "release",
     "common_version": 2,
-    "respack_specific_version": 2,
+    "respack_version": 2,
     "vanilla_discs": [
         "11",
         "13",
@@ -28,81 +28,81 @@
     "discs_index": [
         {
             "id": "mili-through_patches_of_violet",
-            "display": "§5Mili§r - §dThrough Patches of Violet§r",
+            "display_name": "§5Mili§r - §dThrough Patches of Violet§r",
             "length": 232.832,
             
             "alts": [
                 {
                     "variation_id": "simple",
-                    "display": "Simple"
+                    "display_name": "Simple"
                 }
             ]
         },
         {
             "id": "mili-compass",
-            "display": "§5Mili§r - §9Com§epass§r",
+            "display_name": "§5Mili§r - §9Com§epass§r",
             "length": 168.937
         },
         {
             "id": "kano-memories_of_kindness",
-            "display": "§dKano - Memories of Kindness§r",
+            "display_name": "§dKano - Memories of Kindness§r",
             "length": 294.0,
             "alts": [
                 {
                     "variation_id": "monotone",
-                    "display": "Monotone"
+                    "variation_display_name": "Monotone"
                 },
                 {
                     "variation_id": "monstrosity",
-                    "display": "Uh..."
+                    "variation_display_name": "Uh..."
                 }
             ]
         },
         {
             "id": "kero_kero_bonito-well_rested",
-            "display": "Kero Kero Bonito - §4§lW§c§lE§6§lL§e§lL §2§lR§a§lE§9§lS§b§lT§d§lE§5§lD§r",
+            "display_name": "Kero Kero Bonito - §4§lW§c§lE§6§lL§e§lL §2§lR§a§lE§9§lS§b§lT§d§lE§5§lD§r",
             "length": 430.763,
             "alts": [
                 {
                     "variation_id": "simple",
-                    "display": "Simple"
+                    "variation_display_name": "Simple"
                 }
             ]
         },
         {
             "id": "hoyomix-song_to_the_mirrored_moon",
-            "display": "§fHoyo-Mix - §9Song to the §6Mirrored §eMoon§r",
+            "display_name": "§fHoyo-Mix - §9Song to the §6Mirrored §eMoon§r",
             "length": 206.706
         },
         {
             "id": "thepal-song_for_the_masses",
-            "display": "ThePal - §cSong fo§ar th§9e Masses",
+            "display_name": "ThePal - §cSong fo§ar th§9e Masses",
             "length": 281.678
         },
         {
             "id": "eminem-mockingbird",
-            "display": "Eminem - Mockingbird",
+            "display_name": "Eminem - Mockingbird",
             "length": 257.846
         },
         {
             "id": "vane_lily-butcher_vanity",
-            "display": "§eVane Lily, Jamie Paige, ricedeity - §cButcher Vanity§r",
+            "display_name": "§eVane Lily, Jamie Paige, ricedeity - §cButcher Vanity§r",
             "length": 185.666
         },
         {
             "id": "thefatrat-ray_tracer",
-            "display": "TheFatRat, Sprites - Ray Tracer",
+            "display_name": "TheFatRat, Sprites - Ray Tracer",
             "length": 229.487
         },
         {
             "id": "dazbee-echoes_of_longing",
-            "display": "DAZBEE - Echoes of Longing",
+            "display_name": "DAZBEE - Echoes of Longing",
             "length": 264.177,
-            "variation_display": "Starry Night",
+            "variation_display_name": "Starry Night",
             "alts": [
                 {
                     "variation_id": "waves",
-                    "display": "Waves"
+                    "variation_display_name": "Waves"
                 }
             ],
             "mcmeta": {
@@ -116,27 +116,27 @@
         },
         {
             "id": "xi-ascension_to_heaven",
-            "display": "§bXi - Ascension to Heaven§r",
+            "display_name": "§bXi - Ascension to Heaven§r",
             "length": 311.24
         },
         {
             "id": "tanger-strangers_once_again",
-            "display": "Tanger, Treb, Ofir Tabakov - stranger once again",
+            "display_name": "Tanger, Treb, Ofir Tabakov - stranger once again",
             "length": 196.928
         },
         {
             "id": "mailpup-puppyplay",
-            "display": "§cMailpup, femtanyl, sixwing - PUPPYPLAY!§r",
+            "display_name": "§cMailpup, femtanyl, sixwing - PUPPYPLAY!§r",
             "length": 172.063
         },
         {
             "id": "arraegen-glass_chapel",
-            "display": "Arregen - §bGla§9ss Ch§5apel",
+            "display_name": "Arregen - §bGla§9ss Ch§5apel",
             "length": 203.616
         },
         {
             "id": "arraegen-menace",
-            "display": "Arregen - §6Menace",
+            "display_name": "Arregen - §6Menace",
             "length": 191.321
         }
     ],
@@ -162,11 +162,9 @@
             "pack_info": "request_pack_info"
         }
     },
-    "respackopts": {
-        "namespace": "customMusicDiscs"
-    },
+    "respackopts_namespace": "customMusicDiscs",
     "our_namespace": "custom_discs",
-    "pack_png": {
+    "pack_cover": {
         "datapack": "missing",
         "respack": "kero_kero_bonito-well_rested",
         "soundpack": "mili-through_patches_of_violet"

@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import typing
-from config import Config, DiscSpec
+from src.config import Config, DiscSpec
 import shutil
 import re
 
