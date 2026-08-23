@@ -123,11 +123,11 @@ def load_function() -> str:
 def tick_function() -> str:
     return \
         f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run dialog show @s {CONFIG.our_namespace()}:disc_selection\n" \
-        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players enable @a[predicate={CONFIG.our_namespace()}:request_disc_ui] {CONFIG.objective("trigger_ui")}\n" \
-        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players set @a[predicate={CONFIG.our_namespace()}:request_disc_ui] {CONFIG.objective("trigger_ui")} 0\n" \
+        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players enable @a[predicate={CONFIG.our_namespace()}:{CONFIG.predicate("trigger_ui")}] {CONFIG.objective("trigger_ui")}\n" \
+        f"execute as @a[predicate={CONFIG.predicate("trigger_ui")}] run scoreboard players set @a[predicate={CONFIG.our_namespace()}:{CONFIG.predicate("trigger_ui")}] {CONFIG.objective("trigger_ui")} 0\n" \
         f"execute as @a[scores={{{CONFIG.objective("select_disc")}=1..}}] run function {CONFIG.our_namespace()}:apply_disc\n" \
         f"execute as @a[scores={{{CONFIG.objective("select_disc")}=-1}}] run function {CONFIG.our_namespace()}:restore_disc\n" \
-        f"execute as @a[predicate={CONFIG.our_namespace()}:{CONFIG['names']['predicate']['pack_info']}] run function {CONFIG.our_namespace()}:info"
+        f"execute as @a[predicate={CONFIG.our_namespace()}:{CONFIG.predicate("pack_info")}] run function {CONFIG.our_namespace()}:info"
 
 def info_function() -> str:
     update_check = {
@@ -136,8 +136,8 @@ def info_function() -> str:
     }
     return "\n".join([
         f'tellraw @s {update_check}',
-        f"tellraw @s ['Texture pack version: ', {{'translate': '{CONFIG['our_namespace']}.respack_version'}}]",
-        f"tellraw @s '{f"Data pack version: {CONFIG['version']}"}'",
+        f"tellraw @s ['Texture pack version: ', {{'translate': '{CONFIG.our_namespace()}.respack_version'}}]",
+        f"tellraw @s '{f"Data pack version: {CONFIG.version()}"}'",
         f"scoreboard players set @s {CONFIG.objective("pack_info")} 0",
             f"scoreboard players enable @s {CONFIG.objective("pack_info")}"
     ])

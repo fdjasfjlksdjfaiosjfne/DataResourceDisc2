@@ -37,12 +37,18 @@ class Config:
     def is_release_mode(self) -> bool: return self["mode"] == "release"
     def our_namespace(self) -> str: return self["our_namespace"]
     def disc_index(self) -> list[DiscSpec]: return [DiscSpec(**i) for i in self["discs_index"]]
+    def get_disc_spec(self, id) -> DiscSpec:
+        for i in self.disc_index():
+            if i.id == id:
+                return i
+        raise ValueError(f"No disc has the id '{id}'")
+        
     def debug_datapack_path(self) -> Path: return self._datapack_path
     def debug_respack_path(self) -> Path: return self._respack_path
     def debug_soundpack_path(self) -> Path: return self._soundpack_path
     def datapack_pack_format(self) -> tuple[int, int]: return tuple(self["pack_format"]["datapack"])
     def respack_pack_format(self) -> tuple[int, int]: return tuple(self["pack_format"]["respack"])
-    def version(self) -> int: return self["version"]
+    def version(self) -> int: return self["common_version"]
     def vanilla_discs(self) -> list[str]: return self["vanilla_discs"]
     def objective(self, s: typing.Literal["pack_info", "trigger_ui", "select_disc"]) -> str: 
         return self["names"]["scoreboard_objective"][s]

@@ -44,11 +44,11 @@ respack.init()
 if CONFIG.is_release_mode():
     dist = Path(__file__).parent / "dist"
     print("Packing datapack...")
-    zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc Datapack Thing [Ver 1.{CONFIG.version()}].zip")
+    zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc_Datapack_Thing_Ver_{CONFIG.version()}.zip")
     print("Packing resource pack...")
-    zip_directory(CONFIG.debug_respack_path(), dist / f"Disc Art Additions [Ver {CONFIG.version()}].zip")
+    zip_directory(CONFIG.debug_respack_path(), dist / f"Disc_Art_Additions_Ver_{CONFIG.version()}.zip")
     print("Packing sound pack...")
-    SOUND_PACK = dist / f"Disc's Cores [Ver {CONFIG.version()}].zip"
+    SOUND_PACK = dist / f"Disc_Cores_Ver_{CONFIG.version()}.zip"
     zip_directory(CONFIG.debug_soundpack_path(), SOUND_PACK)
     print("Hashing sound pack...")
     print("Sound pack hash:", sha1_file(SOUND_PACK))

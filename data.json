@@ -1,6 +1,7 @@
 {
     "mode": "release",
-    "version": 2,
+    "common_version": 2,
+    "respack_specific_version": 2,
     "vanilla_discs": [
         "11",
         "13",
@@ -95,7 +96,7 @@
         },
         {
             "id": "dazbee-echoes_of_longing",
-            "display": "DAZBEE - Echoes of Logging",
+            "display": "DAZBEE - Echoes of Longing",
             "length": 264.177,
             "variation_display": "Starry Night",
             "alts": [

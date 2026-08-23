@@ -37,19 +37,26 @@ def init():
 
     udc = json.dumps(create_ultimatum_disc_chooser())
     GENERATED_TEXT_FILES = {
-        # Item model
-        OUR_NAMESPACE / f"models/item/{spec.id}.json": item_model_json(spec)
+        # Item model supporting RPO
+        OUR_NAMESPACE / f"models_rpo/item/{spec.id}.json": item_model_json(spec, with_rpo = True)
         for spec in config.disc_index() + [DiscSpec.missing()]
     } | {
         # Item model RPO
-        OUR_NAMESPACE / f"models/item/{spec.id}.json.rpo": item_model_json_rpo(spec)
+        OUR_NAMESPACE / f"models_rpo/item/{spec.id}.json.rpo": item_model_json_rpo(spec)
         for spec in config.disc_index() if spec.has_alts()
+    } | {
+        # Item model without RPO
+        OUR_NAMESPACE / f"models/item/{spec.id}.json": item_model_json(spec, with_rpo = False)
+        for spec in config.disc_index() + [DiscSpec.missing()]
     } | {
         MINECRAFT_NAMESPACE / f"items/music_disc_{i}.json": lambda: udc
         for i in config.vanilla_discs()
     } | {
-        MINECRAFT_NAMESPACE / "lang/en_us.json": us_english_json,
-        MINECRAFT_NAMESPACE / "lang/en_us.json.rpo": lang_json_rpo,
+        OUR_NAMESPACE / f"models/.rpo": lambda: json.dumps({"condition": "false", "fallback": [f"{config.our_namespace()}:lang_rpo"]}),
+        MINECRAFT_NAMESPACE / "lang_rpo/en_us.json": us_english_json(with_rpo = True),
+        MINECRAFT_NAMESPACE / "lang_rpo/en_us.json.rpo": lang_json_rpo,
+        MINECRAFT_NAMESPACE / "lang/en_us.json": us_english_json(with_rpo = False),
+        MINECRAFT_NAMESPACE / "lang/.rpo": lambda: json.dumps({"condition": "false", "fallback": [f"{config.our_namespace()}:lang_rpo"]}),
         root / "respackopts.json5": respackopts_json,
         root / "pack.mcmeta": pack_mcmeta(False)
     }
@@ -94,11 +101,11 @@ def item_model_json_rpo(spec: DiscSpec) -> Callable[[], str]:
         }
     })
 
-def item_model_json(spec: DiscSpec) -> Callable[[], str]:
+def item_model_json(spec: DiscSpec, with_rpo: bool) -> Callable[[], str]:
     return lambda: json.dumps({
         "parent": "item/generated",
         "textures": {
-            "layer0": f"{config.our_namespace()}:item/{spec.id}" + ("${variation}" if spec.has_alts() else "")
+            "layer0": f"{config.our_namespace()}:item/{spec.id}" + ("${variation}" if with_rpo and spec.has_alts() else "")
         }
     })
 
@@ -190,36 +197,40 @@ def sounds_json() -> str:
         } for spec in config.disc_index()
     })
 
-def us_english_json() -> str:
+def us_english_json(with_rpo: bool) -> Callable[[], str]:
     previous_updates = {
         f"{config.our_namespace()}.version_check.{i}": "Your resource pack should work fine!"
         for i in range(1, config.version())
     }
     
     disc_names_for_subtitle = {
-        f"{config.our_namespace()}:display.{spec.id}.subtitle": efcisds(spec.display, spec.config_id)
+        f"{config.our_namespace()}:display.{spec.id}.subtitle": efcisds(spec.display, spec.config_id) if with_rpo else spec.display
         for spec in config.disc_index()
     }
     
     disc_names_for_ui = {
-        f"{config.our_namespace()}:display.{spec.id}.ui": efciuids(spec.display, spec.config_id)
+        f"{config.our_namespace()}:display.{spec.id}.ui": efciuids(spec.display, spec.config_id) if with_rpo else spec.display
         for spec in config.disc_index()
     }
     
-    variation_opts = {}
-    for spec in config.disc_index():
-        if len(spec.alts) != 0:
-            variation_opts.update({
-                f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}.default": spec.variation_display,
-                f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}": spec.display
-            } | {
-                f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}.{opt.variation_id}": opt.display
-                for opt in spec.alts
-            })
+    echoes_of_logging = {
+        
+    }
     
-    afasd = json.dumps({
-        f"{config.our_namespace()}.version_check.{config.version()}": "Your version is up-to-date!",
-        f"{config.our_namespace()}.respack_version": str(config.version()),
+    variation_opts = {}
+    if with_rpo:
+        for spec in config.disc_index():
+            if len(spec.alts) != 0:
+                variation_opts.update({
+                    f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}.default": spec.variation_display,
+                    f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}": spec.display
+                } | {
+                    f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}.{opt.variation_id}": opt.display
+                    for opt in spec.alts
+                })
+    
+    
+    rpo_specific = {
         f"rpo.{config.respackopts_namespace()}": "Custom Music Discs",
         f"rpo.{config.respackopts_namespace()}.misc": "Misc",
         f"rpo.{config.respackopts_namespace()}.variations": "Variations",
@@ -231,6 +242,8 @@ def us_english_json() -> str:
         f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.disabled": "§cDisabled§r",
         f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.enabled": "§aEnabled§r",
         f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.only_tooltip": "§eTooltip Only§r",
+        # This line is disc-specific
+        f"rpo.{config.respackopts_namespace()}.misc.echosOfLogging": "Echoes of Logging",
         f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.tooltip":
             f"Adds comparator and length to the subtitle of a music disc\nE.g. " \
                 # I owe code sanitizers an apology
@@ -238,8 +251,12 @@ def us_english_json() -> str:
                     f'{COMPARATOR}{config.disc_index()[0].comparator_output} '
                     f"{CLOCK}{config.disc_index()[0].format_length()}\n" \
                     f"§c§lNOTE: This only works if you have the Redstone Tweaks resource pack enabled§r",
-    } | previous_updates | disc_names_for_subtitle | disc_names_for_ui | variation_opts)
-    return afasd
+    } if with_rpo else {}
+    
+    return lambda: json.dumps({
+        f"{config.our_namespace()}.version_check.{config.version()}": "Your version is up-to-date!",
+        f"{config.our_namespace()}.respack_version": str(config.version()),
+    } | previous_updates | disc_names_for_subtitle | disc_names_for_ui | variation_opts | rpo_specific)
 
 FORMATTING_LIST = {
     "§0": "black",
@@ -266,20 +283,21 @@ FORMATTING_LIST = {
     "§r": "reset",
 }
 
-def efcisds(s: str, id: str) -> str:
+def efcisds(display: str, config_id: str) -> str:
     "Expandify formatting codes in subtitles display string"
     for i, j in FORMATTING_LIST.items():
-        s.replace(i, "${SB%s}" % j)
-    return s + "${RTINFOSB%s}" % id
+        display.replace(i, "${SB%s}" % j)
+    return display + "${RTINFOSB%s}" % config_id
 
-def efciuids(s: str, id: str) -> str:
+def efciuids(display: str, config_id: str) -> str:
     "Expandify formatting codes in UI display string"
     for i, j in FORMATTING_LIST.items():
-        s.replace(i, "${UI%s}" % j)
-    return s + "${RTINFOUI%s}" % id
+        display.replace(i, "${UI%s}" % j)
+    return display + "${RTINFOUI%s}" % config_id
 
 def lang_json_rpo() -> str:
     rTT = f"{config.respackopts_namespace()}.misc.redstoneTweaksTooltip"
+    # Holy lord this is unreadable
     return json5.dumps({
         "expansions": {
             f"SB{j}": f"{config.respackopts_namespace()}.misc.formattingCodes == 'enabled' ? '{i}' : ''"
@@ -288,11 +306,18 @@ def lang_json_rpo() -> str:
             f"UI{j}": f"{config.respackopts_namespace()}.misc.formattingCodes != 'disabled' ? '{i}' : ''"
             for i, j in FORMATTING_LIST.items()
         } | {
-            f"RTINFOSB{spec.config_id}": f"{rTT} != 'disabled' ? ' §f{COMPARATOR}§7{spec.comparator_output} §f{CLOCK}§7{spec.format_length()}' : ''"
+            f"RTINFOSB{spec.config_id}": 
+                f"{rTT} != 'disabled' ? ' §f{COMPARATOR}§7{spec.comparator_output} §f{CLOCK}§7{spec.format_length()}' : ''"
             for spec in config.disc_index()
         } | {
-            f"RTINFOUI{spec.config_id}": f"{rTT} == 'enabled' ? ' §f{COMPARATOR}§7{spec.comparator_output} §f{CLOCK}§7{spec.format_length()}' : ''"
+            f"RTINFOUI{spec.config_id}":
+                f"{rTT} == 'enabled' ? ' §f{COMPARATOR}§7{spec.comparator_output} §f{CLOCK}§7{spec.format_length()}' : ''"
             for spec in config.disc_index()
+        } | {
+            # Disc-specific
+            f"echoesOfLonging": f"{config.respackopts_namespace()}.misc.echoesOfLogging ? "\
+                f"'{config.get_disc_spec("dazbee-echoes_of_longing").display.replace("Longing", "Logging")}':" \
+                f"'{config.get_disc_spec("dazbee-echoes_of_longing").display}'"
         }
     })
 
@@ -308,7 +333,7 @@ def respackopts_json() -> str:
     return json5.dumps({
         "id": config.respackopts_namespace(),
         "version": 14,
-        "capabilities": ["FileFilter"],
+        "capabilities": ["FileFilter", "DirFilter"],
         "conf": {
             "misc": {
                 "formattingCodes": {
@@ -318,9 +343,11 @@ def respackopts_json() -> str:
                 },
                 "redstoneTweaksTooltip": {
                     "type": "enum",
-                    "default": "only_tooltip",
+                    "default": "disabled",
                     "values": ["disabled", "enabled", "only_tooltip"]
                 },
+                # Disc-specific
+                "echosOfLogging": False
             },
             "variations": variations
         }
