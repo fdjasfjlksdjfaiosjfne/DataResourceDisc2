@@ -86,7 +86,6 @@ This pack generator currently does not generate any OptiFine/MCPatcher files sin
 #### Can you add \[insert music name here]?
 
 If you play on my server, sure. Otherwise, clone the repo and do it yourself.
-Look into [this section](#how-to-synthesize-your-own-collection-of-discs) for an explanation on how to do it.
 
 #### Can you tell me how the code works?
 

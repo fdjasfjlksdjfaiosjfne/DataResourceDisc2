@@ -2,7 +2,7 @@
 **/_*.*
 *.code-workspace
 .vscode
-music/*.ogg
-music/dist/*.ogg
+assets/music/*.ogg
+assets/music/dist/*.ogg
 dist/*
 **/tempCodeRunnerFile.py
