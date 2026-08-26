@@ -5,3 +5,4 @@
 music/*.ogg
 music/dist/*.ogg
 dist/*
+**/tempCodeRunnerFile.py

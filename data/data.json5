@@ -1,0 +1,190 @@
+{
+  mode: "debug",
+  common_version: 2,
+  specific_version: {
+    datapack: 2,
+    respack: 3,
+  },
+  vanilla_discs: [
+    "11",
+    "13",
+    "cat",
+    "5",
+    "stal",
+    "mellohi",
+    "pigstep",
+    "otherside",
+    "bounce",
+    "blocks",
+    "chirp",
+    "far",
+    "mall",
+    "ward",
+    "wait",
+    "relic",
+    "precipice",
+    "creator",
+    "tears",
+    "creator_music_box",
+    "lava_chicken",
+  ],
+  discs_index: [
+    {
+      id: "mili-through_patches_of_violet",
+      display_name: "§5Mili§r - §dThrough Patches of Violet§r",
+      length: 232.832,
+      texture_alts: [
+        {
+          variation_id: "simple",
+          variation_display_name: "Simple",
+        },
+      ],
+    },
+    {
+      id: "mili-compass",
+      display_name: "§5Mili§r - §9Com§epass§r",
+      length: 168.937,
+    },
+    {
+      id: "kano-memories_of_kindness",
+      display_name: "§dKano - Memories of Kindness§r",
+      length: 294.0,
+      texture_alts: [
+        {
+          variation_id: "monotone",
+          variation_display_name: "Monotone",
+        },
+        {
+          variation_id: "monstrosity",
+          variation_display_name: "Uh...",
+        },
+      ],
+    },
+    {
+      id: "kero_kero_bonito-well_rested",
+      display_name: "Kero Kero Bonito - §4§lW§c§lE§6§lL§e§lL §2§lR§a§lE§9§lS§b§lT§d§lE§5§lD§r",
+      length: 430.763,
+      texture_alts: [
+        {
+          variation_id: "simple",
+          variation_display_name: "Simple",
+        },
+      ],
+    },
+    {
+      id: "hoyomix-song_to_the_mirrored_moon",
+      display_name: "§fHoyo-Mix - §9Song to the §6Mirrored §eMoon§r",
+      length: 206.706,
+    },
+    {
+      id: "thepal-song_for_the_masses",
+      display_name: "ThePal - §cSong fo§ar th§9e Masses",
+      length: 281.678,
+    },
+    {
+      id: "eminem-mockingbird",
+      display_name: "Eminem - Mockingbird",
+      length: 257.846,
+    },
+    {
+      id: "vane_lily-butcher_vanity",
+      display_name: "§eVane Lily, Jamie Paige, ricedeity - §cButcher Vanity§r",
+      length: 185.666,
+    },
+    {
+      id: "thefatrat-ray_tracer",
+      display_name: "TheFatRat, Sprites - Ray Tracer",
+      length: 229.487,
+    },
+    {
+      id: "dazbee-echoes_of_longing",
+      display_name: "DAZBEE - Echoes of Longing",
+      length: 264.177,
+      texture_variation_display_name: "Starry Night",
+      display_name_variation_display_name: "Longing",
+      display_name_alts: [
+        {
+          variation_id: "echoes_of_logging",
+          variation_display_name: "Logging",
+          display_name: "DAZBEE - Echoes of Logging",
+        },
+      ],
+      texture_alts: [
+        {
+          variation_id: "waves",
+          variation_display_name: "Waves",
+        },
+      ],
+      mcmeta: {
+        animation: {
+          width: 64,
+          height: 64,
+          frametime: 2,
+          interpolate: true,
+        },
+      },
+    },
+    {
+      id: "xi-ascension_to_heaven",
+      display_name: "§bXi - Ascension to Heaven§r",
+      length: 311.24,
+    },
+    {
+      id: "tanger-strangers_once_again",
+      display_name: "Tanger, Treb, Ofir Tabakov - stranger once again",
+      length: 196.928,
+    },
+    {
+      id: "mailpup-puppyplay",
+      display_name: "§cMailpup, femtanyl, sixwing - PUPPYPLAY!§r",
+      length: 172.063,
+    },
+    {
+      id: "arraegen-glass_chapel",
+      display_name: "Arregen - §bGla§9ss Ch§5apel",
+      length: 203.616,
+    },
+    {
+      id: "arraegen-menace",
+      display_name: "Arregen - §6Menace",
+      length: 191.321,
+    },
+  ],
+  pack_format: {
+    datapack: [107, 1],
+    respack: [88, 0],
+  },
+  names: {
+    scoreboard_objective: {
+      trigger_ui: "open_disc_ui",
+      select_disc: "select_disc",
+      restore_disc: "restore_disc",
+      pack_info: "disc_pack_info",
+    },
+    predicate: {
+      trigger_ui: "request_disc_ui",
+      select_disc: "request_select_disc",
+      restore_disc: "request_restore_disc",
+      pack_info: "request_pack_info",
+    },
+  },
+  respackopts: {
+    namespace: "customMusicDiscs",
+    config_namespace: {
+      misc: "misc",
+      display_name_variation: "display_name_variation",
+      texture_variation: "texture_variation",
+    },
+    config_display_name: {
+      misc: "Miscellaneous",
+      display_name_variation: "Display Name",
+      texture_variation: "Textures",
+    },
+  },
+  our_namespace: "custom_discs",
+  pack_cover: {
+    datapack: "missing",
+    respack: "kero_kero_bonito-well_rested",
+    soundpack: "mili-through_patches_of_violet",
+  },
+}

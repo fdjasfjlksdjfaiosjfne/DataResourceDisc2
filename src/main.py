@@ -1,8 +1,9 @@
 from pathlib import Path
-import json
-from src.config import Config
+from data import init
 from zipfile import ZipFile, ZIP_DEFLATED
 from hashlib import sha1
+import logging
+import sys
 
 def zip_directory(source: Path, destination: Path):
     with ZipFile(destination, "w", compression = ZIP_DEFLATED, compresslevel = 9) as zip:
@@ -19,36 +20,35 @@ def sha1_file(path: Path) -> str:
 
     return hasher.hexdigest()
 
-with open(Path(__file__).parent / "data.json", encoding = "utf-8") as f:
-    print("Initializing config...")
-    CONFIG = Config(json.load(f))
+root = Path(__file__).parent.parent
 
-# Check for duplicated IDs
-a = []
-b = []
-print("Checking for duplicated IDs...")
-for i in CONFIG.disc_index():
-    if i.id in a:
-        raise ValueError(f"Duplicated ID: {i.id}")
-    if i.config_id in b:
-        raise ValueError(f"Duplicated config ID: {i.config_id}")
-    a.append(i.id)
-    b.append(i.config_id)
+logging.basicConfig(
+    level = logging.INFO,
+    format = "[%(name)s] %(levelname)s: %(message)s"
+)
 
-if not (Path(__file__).parent / "textures/missing.png").exists():
-    print("\\e[0;91mmissing.png does not exist. The generator does not have a failsafe for this and will crash if it is needed.\\e[0m")
+init(
+    data_jsons = [
+        root / "data/data.json5",
+        root / "data/data.json"
+    ]
+)
 
-import src.datapack as datapack, src.respack as respack
+import datapack, respack
 datapack.init()
 respack.init()
-if CONFIG.is_release_mode():
-    dist = Path(__file__).parent / "dist"
-    print("Packing datapack...")
-    zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc_Datapack_Thing_Ver_{CONFIG.version()}.zip")
-    print("Packing resource pack...")
-    zip_directory(CONFIG.debug_respack_path(), dist / f"Disc_Art_Additions_Ver_{CONFIG.version()}.zip")
-    print("Packing sound pack...")
-    SOUND_PACK = dist / f"Disc_Cores_Ver_{CONFIG.version()}.zip"
-    zip_directory(CONFIG.debug_soundpack_path(), SOUND_PACK)
-    print("Hashing sound pack...")
-    print("Sound pack hash:", sha1_file(SOUND_PACK))
+
+# import src.datapack as datapack, src.respack as respack
+# datapack.init()
+# respack.init()
+# if CONFIG.is_release_mode():
+#     dist = Path(__file__).parent / "dist"
+#     print("Packing datapack...")
+#     zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc_Datapack_Thing_Ver_{CONFIG.version()}.zip")
+#     print("Packing resource pack...")
+#     zip_directory(CONFIG.debug_respack_path(), dist / f"Disc_Art_Additions_Ver_{CONFIG.version()}.zip")
+#     print("Packing sound pack...")
+#     SOUND_PACK = dist / f"Disc_Cores_Ver_{CONFIG.version()}.zip"
+#     zip_directory(CONFIG.debug_soundpack_path(), SOUND_PACK)
+#     print("Hashing sound pack...")
+#     print("Sound pack hash:", sha1_file(SOUND_PACK))

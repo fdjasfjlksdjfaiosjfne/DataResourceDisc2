@@ -1,24 +1,30 @@
 from pathlib import Path
 from typing import Callable
-from src.config import Config, DiscSpec
-import json
-try:
-    import json5
-except ImportError:
-    json5 = json
+from data import DATA, OMNIDISC, DiscSpec, MISSING_DISC
+from logging import getLogger
+import json, json5
+from respackopts import RT_CLOCK, RT_COMPARATOR, mu_ternary, mu_enum_nequals, mu_enum_equals, FORMATTING_LIST
 import shutil
+import itertools
 
-config = Config()
+CODEBASE_ROOT = Path(__file__).parent.parent
+RPO_DATA = DATA.respackopts
 
-COMPARATOR = "§f\ue101§7"
-CLOCK = "§f\ue102§7"
+logger = getLogger("disc_gen/respack")
+
+def merge_all(*dicts: dict):
+    omni = {}
+    for d in dicts:
+        omni |= d
+    return omni
 
 def write_file(path: Path, content: str):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding = "utf-8")
 
+
 def init():
-    root = config.debug_respack_path()
+    root = DATA.paths.respack
     init_sound_pack()
     
     for path in root.iterdir():
@@ -29,47 +35,45 @@ def init():
     
     
     ASSET_PATH = root / "assets"
-    OUR_NAMESPACE = ASSET_PATH / config.our_namespace()
+    OUR_NAMESPACE = ASSET_PATH / DATA.our_namespace
     MINECRAFT_NAMESPACE = ASSET_PATH / "minecraft"
     ITEM_TEXTURES = OUR_NAMESPACE / "textures" / "item"
+    ITEM_DEFS = MINECRAFT_NAMESPACE / "items"
     
-    copy_item_textures(ITEM_TEXTURES, config, root)
+    copy_item_textures(ITEM_TEXTURES)
+    copy_vanilla_item_defs(ITEM_DEFS)
 
-    udc = json.dumps(create_ultimatum_disc_chooser())
     GENERATED_TEXT_FILES = {
         # Item model supporting RPO
         OUR_NAMESPACE / f"models_rpo/item/{spec.id}.json": item_model_json(spec, with_rpo = True)
-        for spec in config.disc_index() + [DiscSpec.missing()]
+        for spec in DATA.discs_index + [MISSING_DISC]
     } | {
         # Item model RPO
         OUR_NAMESPACE / f"models_rpo/item/{spec.id}.json.rpo": item_model_json_rpo(spec)
-        for spec in config.disc_index() if spec.has_alts()
+        for spec in DATA.discs_index if spec.texture_alts
     } | {
         # Item model without RPO
         OUR_NAMESPACE / f"models/item/{spec.id}.json": item_model_json(spec, with_rpo = False)
-        for spec in config.disc_index() + [DiscSpec.missing()]
+        for spec in DATA.discs_index + [MISSING_DISC]
     } | {
-        MINECRAFT_NAMESPACE / f"items/music_disc_{i}.json": lambda: udc
-        for i in config.vanilla_discs()
-    } | {
-        OUR_NAMESPACE / f"models/.rpo": lambda: json.dumps({"condition": "false", "fallback": [f"{config.our_namespace()}:lang_rpo"]}),
+        OUR_NAMESPACE / f"models/.rpo": lambda: json.dumps({"condition": "false", "fallback": f"assets/{DATA.our_namespace}/models_rpo"}),
         MINECRAFT_NAMESPACE / "lang_rpo/en_us.json": us_english_json(with_rpo = True),
         MINECRAFT_NAMESPACE / "lang_rpo/en_us.json.rpo": lang_json_rpo,
         MINECRAFT_NAMESPACE / "lang/en_us.json": us_english_json(with_rpo = False),
-        MINECRAFT_NAMESPACE / "lang/.rpo": lambda: json.dumps({"condition": "false", "fallback": [f"{config.our_namespace()}:lang_rpo"]}),
+        MINECRAFT_NAMESPACE / "lang/en_us.rpo": lambda: json.dumps({"condition": "false", "fallback": f"assets/minecraft/lang_rpo/en_us.json"}),
         root / "respackopts.json5": respackopts_json,
         root / "pack.mcmeta": pack_mcmeta(False)
     }
     
     for path, generator in GENERATED_TEXT_FILES.items():
-        print(f"Writing {path.relative_to(root)}...")
+        logger.debug(f"Writing {path.relative_to(root)}...")
         write_file(path, generator())
     
-    print(f"Copying pack.png for the resource pack...")
-    (Path(__file__).parent / f"textures/{config.respack_pack_png_id()}.png").copy(root / "pack.png")
+    logger.info(f"Copying pack.png for the resource pack...")
+    (CODEBASE_ROOT / f"assets/textures/{DATA.pack_cover.datapack}.png").copy(root / "pack.png")
 
 def init_sound_pack():
-    root = config.debug_soundpack_path()
+    root = DATA.paths.soundpack
     
     for path in root.iterdir():
         if path.is_dir():
@@ -78,23 +82,28 @@ def init_sound_pack():
             path.unlink()
     
     write_file(root / "pack.mcmeta", pack_mcmeta(True)())
-    SOUNDS = root / f"assets/{config.our_namespace()}/sounds"
-    write_file(root / f"assets/{config.our_namespace()}/sounds.json", sounds_json())
-    copy_sounds(SOUNDS, config, root)
-    (Path(__file__).parent / f"textures/{config.soundpack_pack_png_id()}.png").copy(root / "pack.png")
+    SOUNDS = root / f"assets/{DATA.our_namespace}/sounds"
+    write_file(root / f"assets/{DATA.our_namespace}/sounds.json", sounds_json())
+    copy_sounds(SOUNDS)
+    (CODEBASE_ROOT / f"assets/textures/{DATA.pack_cover.soundpack}.png").copy(root / "pack.png")
 
 def pack_mcmeta(for_sound_files: bool):
     return lambda: json.dumps({
         "pack": {
-            "min_format": config.respack_pack_format(),
-            "max_format": config.respack_pack_format(),
-            "description": f"[Ver {config.version()}] " + 
-                ("Provides sounds and sound events for discs" if for_sound_files else "Provides textures for discs")
+            "min_format": DATA.pack_format.respack,
+            "max_format": DATA.pack_format.respack,
+            "description": (
+                f"[Ver {DATA.common_version}] Provides sounds and sound events for discs" 
+                if for_sound_files else
+                f"[Ver {DATA.respack_version()}] Provides textures for discs"
+            )
         }
     })
 
+
+
 def item_model_json_rpo(spec: DiscSpec) -> Callable[[], str]:
-    key = f"{config.respackopts_namespace()}.variations.{spec.config_id}"
+    key = f"{RPO_DATA.config_namespace.texture_variation}.{spec.rpo_id}"
     return lambda: json5.dumps({
         "expansions": {
             "variation": f"(('' || {key}) == 'default') ? '' : ('-' || {key})"
@@ -105,239 +114,184 @@ def item_model_json(spec: DiscSpec, with_rpo: bool) -> Callable[[], str]:
     return lambda: json.dumps({
         "parent": "item/generated",
         "textures": {
-            "layer0": f"{config.our_namespace()}:item/{spec.id}" + ("${variation}" if with_rpo and spec.has_alts() else "")
+            "layer0": f"{DATA.our_namespace}:item/{spec.id}" + ("${variation}" if with_rpo and spec.texture_alts else "")
         }
     })
 
-def copy_item_textures(path: Path, config: Config, root: Path):
-    original_texture_dir = Path(__file__).parent / "textures"
-    for spec in config.disc_index() + [DiscSpec.missing()]:
+def copy_item_textures(path: Path):
+    original_texture_dir = CODEBASE_ROOT / "assets/textures"
+    for spec in DATA.discs_index + [MISSING_DISC]:
         
         new_path = path / f"{spec.id}.png"
-        print(f"Copying texture file to {new_path.relative_to(root)}...")
+        logger.debug(f"Copying texture file to {new_path.relative_to(DATA.paths.respack)}...")
         
         png = original_texture_dir / f"{spec.id}.png"
         
         if (not png.exists()) or not png.is_file():
-                print(f"\\e[0;91m{png.relative_to(Path(__file__).parent)} does not exist, using fallback\\e[0m")
-                png = original_texture_dir / f"{DiscSpec.missing().id}.png"
+                logger.warning(f"{png.relative_to(CODEBASE_ROOT)} does not exist, using fallback")
+                png = original_texture_dir / f"{MISSING_DISC.id}.png"
         
         new_path.parent.mkdir(parents=True, exist_ok=True)
         png.copy(new_path)
         
-        if spec.mcmeta is not None:
+        if spec.mcmeta:
             write_file(path / f"{spec.id}.png.mcmeta", json.dumps(spec.mcmeta))
         
-        for alt in spec.alts:
+        for alt in spec.texture_alts:
             new_path = path / f"{spec.id}-{alt.variation_id}.png"
-            print(f"Copying texture file to {new_path.relative_to(root)}...")
+            logger.debug(f"Copying texture file to {new_path.relative_to(DATA.paths.respack)}...")
             png = original_texture_dir / f"{spec.id}-{alt.variation_id}.png"
             
             if (not png.exists()) or not png.is_file():
-                print(f"\\e[0;91m{png.relative_to(Path(__file__).parent)} does not exist, using fallback\\e[0m")
-                png = original_texture_dir / f"{DiscSpec.missing().id}.png"
+                logger.warning(f"{png.relative_to(CODEBASE_ROOT)} does not exist, using fallback")
+                png = original_texture_dir / f"{MISSING_DISC.id}.png"
             
             new_path.parent.mkdir(parents=True, exist_ok=True)
             png.copy(new_path)
             
-            if alt.mcmeta is not None:
+            if alt.mcmeta:
                 write_file(path / f"{spec.id}-{alt.variation_id}.png.mcmeta", json.dumps(alt.mcmeta))
 
-def copy_sounds(path: Path, config: Config, root: Path):
-    original_music_files = Path(__file__).parent / "music/dist"
-    for spec in config.disc_index():
+def copy_vanilla_item_defs(path: Path) -> None:
+    for i in DATA.vanilla_discs:
+        v = path / f"music_disc_{i}.json"
+        v.parent.mkdir(parents = True, exist_ok = True)
+        OMNIDISC.copy(v)
+
+def copy_sounds(path: Path):
+    original_music_files = CODEBASE_ROOT / "assets/music/dist"
+    for spec in DATA.discs_index:
         new_path = path / f"{spec.id}.ogg"
-        print(f"Copying music file to {new_path.relative_to(root)}...")
+        logger.debug(f"Copying music file to {new_path.relative_to(DATA.paths.soundpack)}...")
         original_ogg = original_music_files / f"{spec.id}.ogg"
         if (not original_ogg.exists()) or not original_ogg.is_file():
-            print(f"\\e[0;91m{original_ogg.relative_to(Path(__file__).parent)} does not exist, skipping\\e[0m")
+            logger.warning(f"{original_ogg.relative_to(CODEBASE_ROOT)} does not exist, skipping")
             continue
         new_path.parent.mkdir(parents=True, exist_ok=True)
         new_path.touch()
         original_ogg.copy(new_path)
 
-def create_ultimatum_disc_chooser() -> dict:
-    def _branch(head=None, *rest) -> dict:
-        if head == None:
-            return {
-                "type": "model",
-                "model": f"{config.our_namespace()}:missing"
-            }
-        return {
-            "type": "condition",
-            "property": "component",
-            "predicate": "jukebox_playable",
-            "value": {
-                "song": head[0]
-            },
-            "on_true": {
-                "type": "model",
-                "model": head[1]
-            },
-            "on_false": _branch(*rest)
-        }
-        
-    return {
-        "model": _branch(
-            *(
-                [(i, f"item/music_disc_{i}") for i in config.vanilla_discs()] +
-                [(f"{config.our_namespace()}:{spec.id}", f"{config.our_namespace()}:item/{spec.id}") 
-                    for spec in config.disc_index()]
-            )
-        )
-    }
-
 def sounds_json() -> str:
     return json.dumps({
-        f"music_disc.{spec.id}": {
+        spec.sound_id().removeprefix(f"{DATA.our_namespace}:"): {
             "sounds": [{
-                "name": f"{config.our_namespace()}:{spec.id}",
+                "name": f"{DATA.our_namespace}:{spec.id}",
                 "stream": True
             }]
-        } for spec in config.disc_index()
+        } for spec in DATA.discs_index
     })
 
 def us_english_json(with_rpo: bool) -> Callable[[], str]:
     previous_updates = {
-        f"{config.our_namespace()}.version_check.{i}": "Your resource pack should work fine!"
-        for i in range(1, config.version())
+        DATA.version_check_key(i): "Your resource pack should work fine!"
+        for i in range(1, DATA.common_version)
     }
     
     disc_names_for_subtitle = {
-        f"{config.our_namespace()}:display.{spec.id}.subtitle": efcisds(spec.display, spec.config_id) if with_rpo else spec.display
-        for spec in config.disc_index()
+        spec.subtitle_key(): spec.display_name if not with_rpo else "${SB%s}" % spec.rpo_id
+        for spec in DATA.discs_index
     }
     
     disc_names_for_ui = {
-        f"{config.our_namespace()}:display.{spec.id}.ui": efciuids(spec.display, spec.config_id) if with_rpo else spec.display
-        for spec in config.disc_index()
+        spec.ui_key(): spec.display_name if not with_rpo else "${UI%s}" % spec.rpo_id
+        for spec in DATA.discs_index
     }
     
-    echoes_of_logging = {
-        
-    }
-    
-    variation_opts = {}
+    texture_variation_opts = {}
     if with_rpo:
-        for spec in config.disc_index():
-            if len(spec.alts) != 0:
-                variation_opts.update({
-                    f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}.default": spec.variation_display,
-                    f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}": spec.display
+        for spec in DATA.discs_index:
+            if spec.texture_alts:
+                texture_variation_opts.update({
+                    f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.texture_variation}.{spec.rpo_id}.default": spec.texture_variation_display_name,
+                    f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.texture_variation}.{spec.rpo_id}": spec.display_name
                 } | {
-                    f"rpo.{config.respackopts_namespace()}.variations.{spec.config_id}.{opt.variation_id}": opt.display
-                    for opt in spec.alts
+                    opt.rpo_option_key(): opt.variation_display_name
+                    for opt in spec.texture_alts
                 })
     
+    display_name_variation_opts = {}
+    if with_rpo:
+        for spec in DATA.discs_index:
+            if spec.texture_alts:
+                texture_variation_opts.update({
+                    f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.display_name_variation}.{spec.rpo_id}.default": spec.display_name_variation_display_name,
+                    f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.display_name_variation}.{spec.rpo_id}": spec.display_name
+                } | {
+                    opt.rpo_option_key(): opt.variation_display_name
+                    for opt in spec.display_name_alts
+                })
     
     rpo_specific = {
-        f"rpo.{config.respackopts_namespace()}": "Custom Music Discs",
-        f"rpo.{config.respackopts_namespace()}.misc": "Misc",
-        f"rpo.{config.respackopts_namespace()}.variations": "Variations",
-        f"rpo.{config.respackopts_namespace()}.misc.formattingCodes": "Enable formatting codes",
-        f"rpo.{config.respackopts_namespace()}.misc.formattingCodes.enabled": "§aEnabled§r",
-        f"rpo.{config.respackopts_namespace()}.misc.formattingCodes.disabled": "§cDisabled§r",
-        f"rpo.{config.respackopts_namespace()}.misc.formattingCodes.only_ui": "§eUI Only§r",
-        f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip": "Redstone Tweaks-styled Tooltip",
-        f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.disabled": "§cDisabled§r",
-        f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.enabled": "§aEnabled§r",
-        f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.only_tooltip": "§eTooltip Only§r",
-        # This line is disc-specific
-        f"rpo.{config.respackopts_namespace()}.misc.echosOfLogging": "Echoes of Logging",
-        f"rpo.{config.respackopts_namespace()}.misc.redstoneTweaksTooltip.tooltip":
+        f"rpo.{RPO_DATA.namespace}": "Custom Music Discs",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}": RPO_DATA.config_display_name.misc,
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.texture_variation}": RPO_DATA.config_display_name.texture_variation,
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.display_name_variation}": RPO_DATA.config_display_name.display_name_variation,
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.formattingCodes": "Enable formatting codes",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.formattingCodes.enabled": "§aEnabled§r",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.formattingCodes.disabled": "§cDisabled§r",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.formattingCodes.only_ui": "§eUI Only§r",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip": "Redstone Tweaks-styled Tooltip",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip.disabled": "§cDisabled§r",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip.enabled": "§aEnabled§r",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip.only_tooltip": "§eTooltip Only§r",
+        f"rpo.{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip.tooltip":
             f"Adds comparator and length to the subtitle of a music disc\nE.g. " \
                 # I owe code sanitizers an apology
                 f"{(j := (i := list(disc_names_for_subtitle.values())[0]).find("${RTINFO"), i[:j] if j != -1 else i)[1]} "\
-                    f'{COMPARATOR}{config.disc_index()[0].comparator_output} '
-                    f"{CLOCK}{config.disc_index()[0].format_length()}\n" \
+                    f'{RT_COMPARATOR}{DATA.discs_index[0].comparator_output} '
+                    f"{RT_CLOCK}{DATA.discs_index[0].format_length()}\n" \
                     f"§c§lNOTE: This only works if you have the Redstone Tweaks resource pack enabled§r",
     } if with_rpo else {}
     
-    return lambda: json.dumps({
-        f"{config.our_namespace()}.version_check.{config.version()}": "Your version is up-to-date!",
-        f"{config.our_namespace()}.respack_version": str(config.version()),
-    } | previous_updates | disc_names_for_subtitle | disc_names_for_ui | variation_opts | rpo_specific)
-
-FORMATTING_LIST = {
-    "§0": "black",
-    "§1": "dblue",
-    "§2": "dgreen",
-    "§3": "daqua",
-    "§4": "dred",
-    "§5": "dpurple",
-    "§6": "gold",
-    "§7": "gray",
-    "§8": "dgray",
-    "§9": "blue",
-    "§a": "green",
-    "§b": "aqua",
-    "§c": "red",
-    "§d": "lpurple",
-    "§e": "yellow",
-    "§f": "white",
-    "§k": "obfus",
-    "§l": "bold",
-    "§m": "strike",
-    "§n": "uline",
-    "§o": "italic",
-    "§r": "reset",
-}
-
-def efcisds(display: str, config_id: str) -> str:
-    "Expandify formatting codes in subtitles display string"
-    for i, j in FORMATTING_LIST.items():
-        display.replace(i, "${SB%s}" % j)
-    return display + "${RTINFOSB%s}" % config_id
-
-def efciuids(display: str, config_id: str) -> str:
-    "Expandify formatting codes in UI display string"
-    for i, j in FORMATTING_LIST.items():
-        display.replace(i, "${UI%s}" % j)
-    return display + "${RTINFOUI%s}" % config_id
-
-
+    other = {
+        DATA.version_check_key(): "Your version is up-to-date!",
+        f"{DATA.our_namespace}.respack_version": DATA.respack_version(),
+    }
+    
+    return lambda: json.dumps(merge_all(
+        previous_updates, disc_names_for_subtitle, disc_names_for_ui, 
+        texture_variation_opts, rpo_specific, other, display_name_variation_opts
+    ))
 
 def lang_json_rpo() -> str:
-    rTT = f"{config.respackopts_namespace()}.misc.redstoneTweaksTooltip"
-    # Holy lord this is unreadable
+    redstone_tweaks_tooltip = f"{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip"
+    display_name_vars = f"{RPO_DATA.config_namespace.display_name_variation}"
+    
+    subtitle_expansions, ui_expansions = {}, {}
+    for spec in DATA.discs_index:
+        subtitle_expansions[f"SB{spec.rpo_id}"] = "{%s}" % (",".join(
+            [f"default = {spec.display_name_in_mu_for_subtitles()}"] + [
+                f"{alt.variation_id} = {alt.display_name_in_mu_for_subtitles()}"
+                for alt in spec.display_name_alts
+            ]
+        )) + f"[{display_name_vars}.{spec.id}] || " + mu_ternary(
+            mu_enum_nequals(redstone_tweaks_tooltip, "disabled"),
+            f"' {RT_COMPARATOR}§7{spec.comparator_output} {RT_CLOCK}§7{spec.format_length()}§r'",
+            "''"
+        )
+        
+        ui_expansions[f"UI{spec.rpo_id}"] = "{%s}" % (",".join(
+            [f"default = {spec.display_name_in_mu_for_ui()}"] + [
+                f"{alt.variation_id} = {alt.display_name_in_mu_for_ui()}"
+                for alt in spec.display_name_alts
+            ]
+        )) + f"[{display_name_vars}.{spec.id}] || " + mu_ternary(
+            mu_enum_equals(redstone_tweaks_tooltip, "enabled"),
+            f"' {RT_COMPARATOR}{spec.comparator_output} {RT_CLOCK}{spec.format_length()}§r'",
+            "''"
+        )
+    
     return json5.dumps({
-        "expansions": {
-            f"SB{j}": f"{config.respackopts_namespace()}.misc.formattingCodes == 'enabled' ? '{i}' : ''"
-            for i, j in FORMATTING_LIST.items()
-        } | {
-            f"UI{j}": f"{config.respackopts_namespace()}.misc.formattingCodes != 'disabled' ? '{i}' : ''"
-            for i, j in FORMATTING_LIST.items()
-        } | {
-            f"RTINFOSB{spec.config_id}": 
-                f"{rTT} != 'disabled' ? ' §f{COMPARATOR}§7{spec.comparator_output} §f{CLOCK}§7{spec.format_length()}' : ''"
-            for spec in config.disc_index()
-        } | {
-            f"RTINFOUI{spec.config_id}":
-                f"{rTT} == 'enabled' ? ' §f{COMPARATOR}§7{spec.comparator_output} §f{CLOCK}§7{spec.format_length()}' : ''"
-            for spec in config.disc_index()
-        } | {
-            # Disc-specific
-            f"echoesOfLonging": f"{config.respackopts_namespace()}.misc.echoesOfLogging ? "\
-                f"'{config.get_disc_spec("dazbee-echoes_of_longing").display.replace("Longing", "Logging")}':" \
-                f"'{config.get_disc_spec("dazbee-echoes_of_longing").display}'"
-        }
+        "expansions": subtitle_expansions | ui_expansions
     })
 
 def respackopts_json() -> str:
-    variations = {
-        spec.config_id: {
-            "type": "enum",
-            "default": "default",
-            "values": ["default"] + [i.variation_id for i in spec.alts]
-        }
-        for spec in config.disc_index() if len(spec.alts) != 0
-    }
     return json5.dumps({
-        "id": config.respackopts_namespace(),
+        "id": RPO_DATA.namespace,
         "version": 14,
         "capabilities": ["FileFilter", "DirFilter"],
         "conf": {
-            "misc": {
+            RPO_DATA.config_namespace.misc: {
                 "formattingCodes": {
                     "type": "enum",
                     "default": "enabled",
@@ -348,9 +302,21 @@ def respackopts_json() -> str:
                     "default": "disabled",
                     "values": ["disabled", "enabled", "only_tooltip"]
                 },
-                # Disc-specific
-                "echosOfLogging": False
             },
-            "variations": variations
+            RPO_DATA.config_namespace.texture_variation: {
+                spec.rpo_id: {
+                    "type": "enum",
+                    "default": "default",
+                    "values": ["default"] + [i.variation_id for i in spec.texture_alts]
+                }
+                for spec in DATA.discs_index if spec.texture_alts
+            },
+            RPO_DATA.config_namespace.display_name_variation: {
+                spec.rpo_id: {
+                    "type": "enum",
+                    "default": "default",
+                    "values": ["default"] + [i.variation_id for i in spec.display_name_alts]
+                } for spec in DATA.discs_index if spec.display_name_alts
+            }
         }
     })

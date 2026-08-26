@@ -1,7 +1,5 @@
 [project]
 name = "DataResourceDisc2"
-dynamic = ["python"]
+version = "1.2.2"
 requires-python = ">=3.14"
-[optional-dependencies]
-audio-processing = ["pydub", "audioop-lts"]
-json5 = ["json5"]
+dependencies = ["pydub", "audioop-lts", "json5"]

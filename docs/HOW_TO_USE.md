@@ -1,0 +1,1 @@
+If you are willing to pick up this codebase for your own resource pack
