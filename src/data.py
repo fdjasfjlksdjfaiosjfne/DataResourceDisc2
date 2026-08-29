@@ -1,18 +1,21 @@
-from dataclasses import dataclass, is_dataclass, asdict, field
+from dataclasses import dataclass, is_dataclass, field, InitVar, fields
 from typing import Literal, cast, ClassVar, NewType
 from functools import cache
 from pathlib import Path
 from logging import getLogger
 from pydub import AudioSegment
 from respackopts import FORMATTING_LIST
-from json5 import load as json5_load, dump as json5_dump, JSON5Encoder, QuoteStyle
+from json5 import load as json5_load, dump as json5_dump, dumps as json5_dumps, JSON5Encoder, QuoteStyle
 from json import JSONDecodeError
 from respackopts import mu_enum_equals, mu_enum_nequals, mu_ternary
+import sys
 
 class DataJSONEncoder(JSON5Encoder):
     def default(self, o):
         if is_dataclass(o):
-            return asdict(o)
+            return {field.name: getattr(o, field.name) for field in fields(o) if field.metadata.get("serialize", True)}
+        if isinstance(o, Path):
+            return str(o)
         return super().default(o)
 
 ROOT = Path(__file__).parent.parent
@@ -30,6 +33,7 @@ OMNIDISC: Path = ROOT / "data/omnidisc.json"
 
 def init(data_jsons: list[Path]):
     global DATA
+    global MISSING_DISC
     # data.json
     for path in data_jsons:
         if not path.exists():
@@ -68,36 +72,42 @@ def init(data_jsons: list[Path]):
                     quote_keys = True, trailing_commas = False,
                     allow_duplicate_keys = True
                 )
+    
+    MISSING_DISC = DiscSpec(
+        parent = DATA, id = "missing", display_name = "N/A", length = 1
+    )
 
 def deinit(path: Path):
     if DATA.dirty:
         logger.info("DATA is dirty, overriding data JSON file.")
+        s = json5_dumps(
+            DATA, cls = DataJSONEncoder,
+            indent = 4, quote_style = QuoteStyle.PREFER_DOUBLE
+        )
         with open(path, "w") as f:
-            json5_dump(
-                DATA, f, cls = DataJSONEncoder,
-                indent = 4, quote_style = QuoteStyle.PREFER_DOUBLE
-            )
+            f.write(s)
 
 @dataclass(frozen = True, unsafe_hash = True, kw_only = True)
 class Data:
     mode: Literal["debug", "release"] = "debug"
-    paths: PackSpecificField[Path, Path, Path] = field(default = None, init = False)
+    paths: PackSpecificField[Path, Path, Path] = field(default = None, init = False, metadata = {"serialize": False})
     common_version: int
     specific_version: PackSpecificField[int, int, None]
     vanilla_discs: list[str]
     discs_index: list[DiscSpec]
     pack_format: PackSpecificField[tuple[int, int], tuple[int, int], tuple[int, int]]
-    names: dict = field(metadata = {"serialize": False})
     our_namespace: str
-    predicates: PredScoreboardContainer = field(init = False)
-    scoreboard_objectives: PredScoreboardContainer = field(init = False)
+    predicates: PredScoreboardContainer
+    scoreboard_objectives: PredScoreboardContainer
     respackopts: RespackoptsData
     pack_cover: PackSpecificField[DiscID, DiscID, DiscID]
+    
     critical_errors: list = field(
         default_factory = lambda: [],
         init = False,
         metadata = {"serialize": False}
     )
+    
     dirty: bool = field(
         default = False,
         init = False,
@@ -139,7 +149,7 @@ class Data:
                 )
                 raise
         
-        original_discs_index = [DiscSpec(**i) for i in cast(list[dict], self.discs_index)]
+        original_discs_index = [DiscSpec(parent = self, **i) for i in cast(list[dict], self.discs_index)]
         object.__setattr__(self, "discs_index", list(filter(None, original_discs_index)))
         if len(original_discs_index) != len(self.discs_index):
             self.dirty = True
@@ -166,9 +176,8 @@ class Data:
                 "\n".join(f"Disc RPO ID '{id}' found in indices {", ".join(ls)}" for id, ls in rpo_ids.items() if len(ls) > 1)
             )
         
-        object.__setattr__(self, "predicates", PredScoreboardContainer(**self.names["predicate"]))
-        object.__setattr__(self, "scoreboard_objectives", PredScoreboardContainer(**self.names["scoreboard_objective"]))
-        
+        object.__setattr__(self, "predicates", PredScoreboardContainer(**self.predicates))
+        object.__setattr__(self, "scoreboard_objectives", PredScoreboardContainer(**self.scoreboard_objectives))
         object.__setattr__(self, "pack_format", PackSpecificField(**self.pack_format))
         object.__setattr__(self, "pack_cover", PackSpecificField(**self.pack_cover))
         object.__setattr__(self, "specific_version", PackSpecificField(**self.specific_version))
@@ -199,6 +208,10 @@ class DiscSpec:
     COMMON_MUSIC_DIR: ClassVar[Path] = ROOT / "assets/music"
     COMMON_TEXTURE_DIR: ClassVar[Path] = ROOT / "assets/textures"
     
+    parent: Data = field(
+        repr = False, hash = False, metadata = {"serialize": False}
+    )
+    
     id: DiscID
     rpo_id: str = None
     display_name: str
@@ -207,7 +220,6 @@ class DiscSpec:
     comparator_output: int = 7
     texture_variation_display_name: str = "Default"
     display_name_variation_display_name: str = "Default"
-    # Where is my frozendict? Python 3.15???
     mcmeta: dict = field(default_factory = lambda: {}, hash = False)
     display_name_alts: tuple[DiscNameAlts, ...] = field(default_factory = lambda: ())
     texture_alts: tuple[DiscTextureAlts, ...] = field(default_factory = lambda: ())
@@ -239,8 +251,9 @@ class DiscSpec:
             logger.warning(f"Disc {self.id} does not specify a length. Attempting to synthesize...")
             if not self.sound_path.exists():
                 logger.error(f"Disc {self.id} does not have a length nor a valid music file. Setting length to '1'...")
-                self.length = 1.0
-            self.length = cast(AudioSegment, AudioSegment.from_ogg(self.sound_path)).duration_seconds
+                object.__setattr__(self, "length", 1.0)
+            object.__setattr__(self, "length", cast(AudioSegment, AudioSegment.from_ogg(self.sound_path)).duration_seconds)
+            object.__setattr__(self.parent, "dirty", True)
             logger.debug("Found length of disc with ID '%s' being '%d'", self.id, self.length)
     
     @cache
@@ -290,19 +303,17 @@ class DiscSpec:
     
     def display_name_in_mu_for_subtitles(self):
         return mu_ternary(
-            mu_enum_equals(f"{DATA.respackopts.config_namespace.misc}.formattingCodes", "enabled"),
-            self.display_name, self.stripped_display_name()
+            mu_enum_equals(f"{DATA.respackopts.namespace}.{DATA.respackopts.config_namespace.misc}.formattingCodes", "enabled"),
+            f"'{self.display_name}'", f"'{self.stripped_display_name()}'"
         )
     
     def display_name_in_mu_for_ui(self):
         return mu_ternary(
-            mu_enum_nequals(f"{DATA.respackopts.config_namespace.misc}.formattingCodes", "disabled"),
-            self.display_name, self.stripped_display_name()
+            mu_enum_nequals(f"{DATA.respackopts.namespace}.{DATA.respackopts.config_namespace.misc}.formattingCodes", "disabled"),
+            f"'{self.display_name}'", f"'{self.stripped_display_name()}'"
         )
 
-MISSING_DISC = DiscSpec(
-    id = "missing", display_name = "N/A", length = 1
-)
+MISSING_DISC: DiscSpec
 
 @dataclass(frozen = True, unsafe_hash = True, kw_only = True)
 class RespackoptsData:
@@ -338,14 +349,14 @@ class DiscNameAlts:
     
     def display_name_in_mu_for_subtitles(self):
             return mu_ternary(
-                mu_enum_equals(f"{DATA.respackopts.config_namespace.misc}.formattingCodes", "enabled"),
-                self.display_name, self.stripped_display_name()
+                mu_enum_equals(f"{DATA.respackopts.namespace}.{DATA.respackopts.config_namespace.misc}.formattingCodes", "enabled"),
+                f"'{self.display_name}'", f"'{self.stripped_display_name()}'"
             )
         
     def display_name_in_mu_for_ui(self):
         return mu_ternary(
-            mu_enum_nequals(f"{DATA.respackopts.config_namespace.misc}.formattingCodes", "disabled"),
-            self.display_name, self.stripped_display_name()
+            mu_enum_nequals(f"{DATA.respackopts.namespace}.{DATA.respackopts.config_namespace.misc}.formattingCodes", "disabled"),
+            f"'{self.display_name}'", f"'{self.stripped_display_name()}'"
         )
 
 @dataclass(frozen = True, unsafe_hash = True, kw_only = True)

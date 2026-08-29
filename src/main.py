@@ -1,9 +1,8 @@
 from pathlib import Path
-from data import init
+from data import deinit, init
 from zipfile import ZipFile, ZIP_DEFLATED
 from hashlib import sha1
 import logging
-import sys
 
 def zip_directory(source: Path, destination: Path):
     with ZipFile(destination, "w", compression = ZIP_DEFLATED, compresslevel = 9) as zip:
@@ -38,17 +37,21 @@ import datapack, respack
 datapack.init()
 respack.init()
 
-# import src.datapack as datapack, src.respack as respack
-# datapack.init()
-# respack.init()
-# if CONFIG.is_release_mode():
-#     dist = Path(__file__).parent / "dist"
-#     print("Packing datapack...")
-#     zip_directory(CONFIG.debug_datapack_path(), dist / f"Disc_Datapack_Thing_Ver_{CONFIG.version()}.zip")
-#     print("Packing resource pack...")
-#     zip_directory(CONFIG.debug_respack_path(), dist / f"Disc_Art_Additions_Ver_{CONFIG.version()}.zip")
-#     print("Packing sound pack...")
-#     SOUND_PACK = dist / f"Disc_Cores_Ver_{CONFIG.version()}.zip"
-#     zip_directory(CONFIG.debug_soundpack_path(), SOUND_PACK)
-#     print("Hashing sound pack...")
-#     print("Sound pack hash:", sha1_file(SOUND_PACK))
+from data import DATA
+
+if DATA.mode == "release":
+    logger = logging.getLogger("disc_gen/zip")
+    dist = root / "dist"
+    for i in dist.glob("*.zip"):
+        i.unlink()
+    logger.info("Packing datapack...")
+    zip_directory(DATA.paths.datapack, dist / f"Disc_Datapack_Thing_Ver_{DATA.common_version}_{DATA.specific_version.datapack}.zip")
+    logger.info("Packing resource pack...")
+    zip_directory(DATA.paths.respack, dist / f"Disc_Art_Additions_Ver_{DATA.common_version}_{DATA.specific_version.respack}.zip")
+    logger.info("Packing sound pack...")
+    SOUND_PACK = dist / f"Disc_Cores_Ver_{DATA.common_version}.zip"
+    zip_directory(DATA.paths.soundpack, SOUND_PACK)
+    logger.info("Hashing sound pack...")
+    print("Sound pack hash:", sha1_file(SOUND_PACK))
+
+deinit(root / "data/data.json5")

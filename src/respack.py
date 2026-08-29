@@ -3,7 +3,7 @@ from typing import Callable
 from data import DATA, OMNIDISC, DiscSpec, MISSING_DISC
 from logging import getLogger
 import json, json5
-from respackopts import RT_CLOCK, RT_COMPARATOR, mu_ternary, mu_enum_nequals, mu_enum_equals, FORMATTING_LIST
+from respackopts import *
 import shutil
 import itertools
 
@@ -60,7 +60,7 @@ def init():
         MINECRAFT_NAMESPACE / "lang_rpo/en_us.json": us_english_json(with_rpo = True),
         MINECRAFT_NAMESPACE / "lang_rpo/en_us.json.rpo": lang_json_rpo,
         MINECRAFT_NAMESPACE / "lang/en_us.json": us_english_json(with_rpo = False),
-        MINECRAFT_NAMESPACE / "lang/en_us.rpo": lambda: json.dumps({"condition": "false", "fallback": f"assets/minecraft/lang_rpo/en_us.json"}),
+        MINECRAFT_NAMESPACE / "lang/en_us.json.rpo": lambda: json.dumps({"condition": "false", "fallback": f"assets/minecraft/lang_rpo/en_us.json"}),
         root / "respackopts.json5": respackopts_json,
         root / "pack.mcmeta": pack_mcmeta(False)
     }
@@ -70,7 +70,7 @@ def init():
         write_file(path, generator())
     
     logger.info(f"Copying pack.png for the resource pack...")
-    (CODEBASE_ROOT / f"assets/textures/{DATA.pack_cover.datapack}.png").copy(root / "pack.png")
+    (CODEBASE_ROOT / f"assets/textures/{DATA.pack_cover.respack}.png").copy(root / "pack.png")
 
 def init_sound_pack():
     root = DATA.paths.soundpack
@@ -254,32 +254,52 @@ def us_english_json(with_rpo: bool) -> Callable[[], str]:
     ))
 
 def lang_json_rpo() -> str:
-    redstone_tweaks_tooltip = f"{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip"
-    display_name_vars = f"{RPO_DATA.config_namespace.display_name_variation}"
+    redstone_tweaks_tooltip = f"{RPO_DATA.namespace}.{RPO_DATA.config_namespace.misc}.redstoneTweaksTooltip"
+    display_name_vars = f"{RPO_DATA.namespace}.{RPO_DATA.config_namespace.display_name_variation}"
     
     subtitle_expansions, ui_expansions = {}, {}
     for spec in DATA.discs_index:
-        subtitle_expansions[f"SB{spec.rpo_id}"] = "{%s}" % (",".join(
-            [f"default = {spec.display_name_in_mu_for_subtitles()}"] + [
-                f"{alt.variation_id} = {alt.display_name_in_mu_for_subtitles()}"
+        sb_obj = mu_object(
+            {"default": spec.display_name_in_mu_for_subtitles()} | {
+                alt.variation_id: alt.display_name_in_mu_for_subtitles()
                 for alt in spec.display_name_alts
-            ]
-        )) + f"[{display_name_vars}.{spec.id}] || " + mu_ternary(
-            mu_enum_nequals(redstone_tweaks_tooltip, "disabled"),
-            f"' {RT_COMPARATOR}§7{spec.comparator_output} {RT_CLOCK}§7{spec.format_length()}§r'",
-            "''"
+            }
         )
         
-        ui_expansions[f"UI{spec.rpo_id}"] = "{%s}" % (",".join(
-            [f"default = {spec.display_name_in_mu_for_ui()}"] + [
-                f"{alt.variation_id} = {alt.display_name_in_mu_for_ui()}"
-                for alt in spec.display_name_alts
-            ]
-        )) + f"[{display_name_vars}.{spec.id}] || " + mu_ternary(
-            mu_enum_equals(redstone_tweaks_tooltip, "enabled"),
-            f"' {RT_COMPARATOR}{spec.comparator_output} {RT_CLOCK}{spec.format_length()}§r'",
-            "''"
+        sb_argument = mu_ternary(
+            mu_contains(display_name_vars, mu_string(spec.rpo_id)),
+            true = f"{display_name_vars}.{spec.rpo_id}",
+            false = mu_string("default")
         )
+        
+        sb_rt_ext = mu_ternary(
+            mu_enum_nequals(redstone_tweaks_tooltip, "disabled"),
+            mu_string(f' {RT_COMPARATOR}§7{spec.comparator_output} {RT_CLOCK}§7{spec.format_length()}§r'),
+            mu_string("")
+        )
+        
+        subtitle_expansions[f"SB{spec.rpo_id}"] = sb_obj + f"[{sb_argument}] || ({sb_rt_ext})"
+        
+        ui_obj = mu_object(
+            {"default": spec.display_name_in_mu_for_ui()} | {
+                alt.variation_id: alt.display_name_in_mu_for_ui()
+                for alt in spec.display_name_alts
+            }
+        )
+        
+        ui_argument = mu_ternary(
+            mu_contains(display_name_vars, mu_string(spec.rpo_id)),
+            true = f"{display_name_vars}.{spec.rpo_id}",
+            false = mu_string("default")
+        )
+        
+        ui_rt_ext = mu_ternary(
+            mu_enum_equals(redstone_tweaks_tooltip, "enabled"),
+            mu_string(f' {RT_COMPARATOR}§7{spec.comparator_output} {RT_CLOCK}§7{spec.format_length()}§r'),
+            mu_string("")
+        )
+        
+        ui_expansions[f"UI{spec.rpo_id}"] = ui_obj + f"[{ui_argument}] || ({ui_rt_ext})"
     
     return json5.dumps({
         "expansions": subtitle_expansions | ui_expansions

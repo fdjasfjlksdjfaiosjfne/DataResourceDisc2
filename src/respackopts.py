@@ -1,3 +1,4 @@
+import re
 
 RT_COMPARATOR = "§f\ue101"
 RT_CLOCK = "§f\ue102"
@@ -34,4 +35,13 @@ def mu_enum_equals(enumOption: str, value: str) -> str:
     return f'("" || {enumOption}) == "{value}"'
 
 def mu_enum_nequals(enumOption: str, value: str) -> str:
-    return f'("" || {enumOption}) == "{value}"'
+    return f'("" || {enumOption}) != "{value}"'
+
+def mu_string(content: str) -> str:
+    return f'"{re.sub(r"(?<!\\)(?:\\\\)*[\"']", lambda m: f"\\{m.group(0)}", content)}"'
+
+def mu_contains(container: str, content: str):
+    return f"contains({container}, {content})"
+
+def mu_object(d: dict) -> str:
+    return "{%s}" % ",".join(f"`{k}` = {v}" for k, v in d.items())
