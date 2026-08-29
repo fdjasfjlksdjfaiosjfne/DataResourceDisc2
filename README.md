@@ -59,6 +59,14 @@ But the acronym "QTIHAFSGITIOAAMAATALATCC" isn't very memorable nor familiar, so
 A few music here are not royalty-free and/or not allowed to distribute freely as a music file on some random repo. I just make Git ignore all of them in the source. I'm not taking any chances.
 If you do want to do what music is used in my server though, look at `data.json`.
 
+#### How does the version system work?
+
+The format (and rules on how to increase) is loosely based on SemVar.
+- The minor version number increments if there's a change on an individual pack (say, a texture change on the resource pack, or a UI change on the data pack).
+- The middle version number increments if new songs are added. Most of the time, a older version of the resource pack can run with a newer datapack, just without the new content.
+- The major version is increased if the architectural change is so big that backwards compatibility is impossible.
+This is also why the sound pack has no minor version.
+
 #### I just look at your list. What the hell is your music taste?
 
 The list here is a collection of multiple people's tastes. I don't judge any of their tastes and yet you do. Get a grip.
