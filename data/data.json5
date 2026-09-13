@@ -1,10 +1,9 @@
 {
     mode: "release",
-    common_version: 3,
+    common_version: 4,
     specific_version: {
         datapack: 0,
         respack: 0,
-        soundpack: null,
     },
     vanilla_discs: [
         "11",
@@ -39,6 +38,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [
@@ -58,6 +58,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -71,6 +72,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [
@@ -95,6 +97,9 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [
+                "\u00a7rAnd you will be \u00a74\u00a7lW\u00a7c\u00a7lE\u00a76\u00a7lL\u00a7e\u00a7lL \u00a72\u00a7lR\u00a7a\u00a7lE\u00a79\u00a7lS\u00a7b\u00a7lT\u00a7d\u00a7lE\u00a75\u00a7lD\u00a7r when the ascension comes",
+            ],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [
@@ -114,6 +119,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -127,6 +133,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -140,6 +147,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -153,6 +161,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -166,6 +175,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -179,6 +189,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Starry Night",
             display_name_variation_display_name: "Longing",
+            lore: [],
             mcmeta: {
                 animation: {
                     width: 64,
@@ -211,6 +222,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -224,6 +236,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -237,6 +250,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -250,6 +264,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -263,6 +278,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: ["The only truth is that there is no truth..."],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -276,6 +292,7 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -289,7 +306,105 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
-            mcmeta: {},
+            lore: [
+                "\u304f\u308b\u304f\u308b\u304f\u308b\u304f\u308b...",
+            ],
+            mcmeta: {
+                animation: {
+                    frametime: 2,
+                    frames: [
+                        {
+                            index: 0,
+                            time: 32,
+                        },
+                        {
+                            index: 3,
+                        },
+                        {
+                            index: 0,
+                            time: 43,
+                        },
+                        {
+                            index: 9,
+                        },
+                        {
+                            index: 0,
+                            time: 9,
+                        },
+                        {
+                            index: 12,
+                        },
+                        {
+                            index: 0,
+                            time: 50,
+                        },
+                        {
+                            index: 2,
+                        },
+                        {
+                            index: 0,
+                            time: 42,
+                        },
+                        {
+                            index: 6,
+                        },
+                        {
+                            index: 0,
+                            time: 23,
+                        },
+                        {
+                            index: 1,
+                        },
+                        {
+                            index: 0,
+                            time: 12,
+                        },
+                        {
+                            index: 1,
+                        },
+                        {
+                            index: 0,
+                            time: 16,
+                        },
+                        {
+                            index: 5,
+                        },
+                        {
+                            index: 0,
+                            time: 20,
+                        },
+                        {
+                            index: 11,
+                        },
+                        {
+                            index: 0,
+                            time: 2,
+                        },
+                        {
+                            index: 8,
+                            time: 3,
+                        },
+                        {
+                            index: 4,
+                            time: 3,
+                        },
+                        {
+                            index: 0,
+                            time: 14,
+                        },
+                        {
+                            index: 7,
+                        },
+                        {
+                            index: 0,
+                            time: 30,
+                        },
+                        {
+                            index: 10,
+                        },
+                    ],
+                },
+            },
             display_name_alts: [],
             texture_alts: [],
         },
@@ -302,6 +417,24 @@
             comparator_output: 7,
             texture_variation_display_name: "Default",
             display_name_variation_display_name: "Default",
+            lore: [
+                "\u304f\u308b\u304f\u308b\u304f\u308b\u304f\u308b...",
+            ],
+            mcmeta: {},
+            display_name_alts: [],
+            texture_alts: [],
+        },
+        {
+            id: "threeye-midnight_city_echorift",
+            display_name: "3ye - Midnight City (Echorift Cover)",
+            length: 266.24,
+            range: 64,
+            comparator_output: 7,
+            texture_variation_display_name: "Default",
+            display_name_variation_display_name: "Default",
+            lore: [
+                "Just to stay at the status quo, you've got too many days left.",
+            ],
             mcmeta: {},
             display_name_alts: [],
             texture_alts: [],
@@ -316,23 +449,23 @@
             88,
             0,
         ],
-        soundpack: [
-            88,
-            0,
-        ],
     },
     our_namespace: "custom_discs",
     predicates: {
-        trigger_ui: "request_disc_ui",
+        trigger_disc_ui: "request_disc_ui",
+        trigger_tome_config_ui: "request_tome_ui",
         select_disc: "request_select_disc",
         restore_disc: "request_restore_disc",
         pack_info: "request_pack_info",
+        configure_xp_tomes: "request_configure_xp_tomes",
     },
     scoreboard_objectives: {
-        trigger_ui: "open_disc_ui",
+        trigger_disc_ui: "open_disc_ui",
+        trigger_tome_config_ui: "open_tome_ui",
         select_disc: "select_disc",
         restore_disc: "restore_disc",
         pack_info: "disc_pack_info",
+        configure_xp_tomes: "configure_xp_tomes",
     },
     respackopts: {
         namespace: "customMusicDiscs",
@@ -340,16 +473,135 @@
             misc: "misc",
             display_name_variation: "display_name_variation",
             texture_variation: "texture_variation",
+            xp_tomes: "xp_tomes",
         },
         config_display_name: {
             misc: "Miscellaneous",
             display_name_variation: "Display Name",
             texture_variation: "Textures",
+            xp_tomes: "XP Tomes",
         },
     },
     pack_cover: {
         datapack: "missing",
         respack: "kero_kero_bonito-well_rested",
-        soundpack: "mili-through_patches_of_violet",
     },
+    recipes: {
+        blank_disc: {
+            type: "minecraft:crafting_shaped",
+            key: {
+                I: "minecraft:iron_nugget",
+                C: "minecraft:coal",
+            },
+            pattern: [
+                " I ",
+                "CCC",
+                " I "
+            ],
+            result: {
+                id: "minecraft:music_disc_stal",
+                components: {
+                    "minecraft:jukebox_playable": "custom_discs:mili-through_patches_of_violet",
+                },
+            },
+        },
+    },
+    add_tomes: true,
+    tomes_index: [
+        {
+            id: "basic_xp_tome",
+            display_name: "Basic XP Tome",
+            recipe_key: {
+                B: "minecraft:book",
+                E: "minecraft:ender_pearl",
+            },
+            recipe_pattern: [
+                " E ",
+                "EBE",
+                " E ",
+            ],
+            max_xp: 1395,
+            default_xp_color: "lime",
+            retrieve_until_next_level: true,
+            store_until_previous_level: false,
+            retrieve_xp_orbs: false,
+            lock: ["retrieve_xp_orbs"]
+        },
+        {
+            id: "empowered_xp_tome",
+            display_name: "Empowered XP Tome",
+            recipe_key: {
+                B: "minecraft:book",
+                E: "minecraft:ender_pearl",
+                A: "minecraft:amethyst_shard",
+                L: "minecraft:lapis_lazuli",
+            },
+            recipe_pattern: [
+                "LEA",
+                "EBE",
+                "AEL",
+            ],
+            max_xp: 4020,
+            default_xp_color: "blue",
+            retrieve_until_next_level: true,
+            store_until_previous_level: false,
+            retrieve_xp_orbs: true,
+        },
+        {
+            id: "nether_xp_tome",
+            display_name: "Nether XP Tome",
+            recipe_key: {
+                B: "minecraft:book",
+                P: "minecraft:ender_pearl",
+                A: "minecraft:amethyst_shard",
+                L: "minecraft:lapis_lazuli",
+                E: "minecraft:ender_eye",
+            },
+            recipe_pattern: [
+                "LEA",
+                "EBP",
+                "APL",
+            ],
+            max_xp: 8670,
+            default_xp_color: "yellow",
+            retrieve_until_next_level: true,
+            store_until_previous_level: false,
+            retrieve_xp_orbs: true,
+        },
+        {
+            id: "ultra_xp_tome",
+            display_name: "Ultra XP Tome",
+            recipe_key: {
+                B: "minecraft:book",
+                E: "minecraft:ender_eye",
+                L: "minecraft:lapis_block",
+                C: "minecraft:end_crystal",
+            },
+            recipe_pattern: [
+                "CEL",
+                "EBE",
+                "LEC",
+            ],
+            max_xp: 79095,
+            default_xp_color: "magenta",
+            retrieve_until_next_level: true,
+            store_until_previous_level: false,
+            retrieve_xp_orbs: true,
+        },
+    ],
+    tome_xp_color_index: [
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "lime",
+        "cyan",
+        "blue",
+        "light_blue",
+        "purple",
+        "magenta",
+        "pink",
+        "white",
+        "rainbow",
+    ],
 }

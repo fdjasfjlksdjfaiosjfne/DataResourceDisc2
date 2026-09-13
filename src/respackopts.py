@@ -3,6 +3,11 @@ import re
 RT_COMPARATOR = "§f\ue101"
 RT_CLOCK = "§f\ue102"
 
+QUOTE = re.compile(r"(?<!\\)(?:\\\\)*[\"']")
+
+def escape_quotes(s: str):
+    return re.sub(QUOTE, lambda m: f"\\{m.group(0)}", s)
+
 FORMATTING_LIST = {
     "0": "black",
     "1": "dblue",
@@ -38,7 +43,7 @@ def mu_enum_nequals(enumOption: str, value: str) -> str:
     return f'("" || {enumOption}) != "{value}"'
 
 def mu_string(content: str) -> str:
-    return f'"{re.sub(r"(?<!\\)(?:\\\\)*[\"']", lambda m: f"\\{m.group(0)}", content)}"'
+    return f'"{escape_quotes(content)}"'
 
 def mu_contains(container: str, content: str):
     return f"contains({container}, {content})"
