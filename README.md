@@ -4,6 +4,9 @@ The only reason this is here is so I can use Github Releases to shove in `resour
 
 If you, for whatever reason, wants to clone this thing or curious on how it works, continue to read. Otherwise, you can leave.
 
+# Little note
+As of now, this README is outdated on many parts. Mostly regarding the locations of the file and how it works (because a lot has changed).
+I'll remove this if I think this is up-to-date.
 # About the packs
 
 There are three packs that is generated.
