@@ -270,7 +270,7 @@ class NBTCompound(NBT):
         self._v = v
     def get(self, v: str, default: Any) -> Any:
         return self._v.get(v, default)
-    def __getitem__(self, item) -> str:
+    def __getitem__(self, item: str) -> NBT:
         return self._v[item]
     def __setitem__(self, item, value):
         self._v[item] = value
@@ -280,7 +280,7 @@ class NBTCompound(NBT):
         )
 
 type TextComponentObj = str | TextComponent | list[TextComponent]
-class TextComponent:
+class TextComponent(NBT):
     """Represent a NBT-compound-style text component.
     
     If you want to convert aliases, use the `.expand()` class method.

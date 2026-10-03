@@ -2,27 +2,16 @@
 """
 
 import re
-from typing import Any, Literal, Self
+from types import TracebackType
+from typing import Any, Literal, Self, cast
 import traceback, sys
 from logging import getLogger
 from mc_objects import *
 
 logger = getLogger("disc_gen/commands")
 
-def excepthook(exc_type, exc, tb):
-    if isinstance(exc, CommandSyntaxException):
-        print(exc.source, file = sys.stderr)
-        print(" " * (exc.position[0] + 1) + "^" * (exc.position[1] - exc.position[0]), file = sys.stderr)
-        print(f"{exc_type.__name__}: {exc}", file = sys.stderr)
-        print()
-        traceback.print_tb(tb, file = sys.stderr)
-    else:
-        sys.__excepthook__(exc_type, exc, tb)
-
-sys.excepthook = excepthook
-
 class CommandSyntaxException(Exception):
-    def __init__(self, message, source=None, position=None):
+    def __init__(self, message, source: str, position: tuple[int, int]):
         super().__init__(message)
         self.source = source
         self.position = position
@@ -62,7 +51,7 @@ class ExecuteCmd(Command):
     def __init__(self):
         self._command = "execute"
         self._clauses = []
-        self._last_clause_position = None
+        self._last_clause_position: int = cast(int, None)
 
     def _append_clause(self, clause: str, command: str) -> Self:
         self._last_clause_position = len(self._command) - 1
@@ -377,19 +366,23 @@ class ScoreboardCmd(Command):
             """
             
             return ScoreboardCmd(f"scoreboard players enable {targets} {objective}")
-        
+
+        @staticmethod
         def set(targets: ScoreHolder, objective: str, score: int):
             "Set the targets' scores in the given objective, overwriting any previous score."
             return ScoreboardCmd(f"scoreboard players set {targets} {objective} {score}")
-        
+
+        @staticmethod
         def add(targets: ScoreHolder, objective: str, score: int):
             """Increments the targets' scores in that objective by the given amount."""
             return ScoreboardCmd(f"scoreboard players add {targets} {objective} {score}")
-        
+
+        @staticmethod
         def remove(targets: ScoreHolder, objective: str, score: int):
             """Decrements the targets' scores in that objective by the given amount."""
             return ScoreboardCmd(f"scoreboard players remove {targets} {objective} {score}")
-        
+
+        @staticmethod
         def reset(targets: ScoreHolder, objective: str | None = None):
             """Deletes score or all scores for the targets. If <objective> is specified, 
             then only that objective is cleared. Otherwise, this applies to all objectives.
@@ -407,7 +400,7 @@ class ScoreboardCmd(Command):
             return ScoreboardCmd(f"scoreboard players reset {targets}" + f" {objective}" if objective is not None else "")
 
 class TellrawCmd(Command):
-    def __init__(self, target_selector: Entity, text_component: TextComponent):
+    def __init__(self, target_selector: Entity, text_component: TextComponent | NBTList):
         self.target_selector = target_selector
         self.text_component = text_component
     
@@ -459,7 +452,7 @@ class FunctionCmd(Command):
     
     @staticmethod
     def with_block(fn, blockpos: tuple[int | str, int | str, int | str], path: str):
-        return FunctionCmd(f"function {fn} with storage {" ".join(blockpos)} {path if path is not None else ""}")
+        return FunctionCmd(f"function {fn} with storage {" ".join(str(comp) for comp in blockpos)} {path if path is not None else ""}")
     
     @staticmethod
     def with_storage(fn, storage: str, path: str):

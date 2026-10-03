@@ -159,13 +159,13 @@ def add_tomes():
     imp = DATA.paths.datapack / "data/xpbook/item_modifier"
     for opt in ["retrieve_xp_orbs", "retrieve_until_next_level", "store_until_previous_level"]:
         write_file(imp / f"{opt}_off.json", json.dumps({
-            "function": "set_components",
+            "type": "set_components",
             "components": {
                 f"!xpbook:{opt}": {}
             }
         }))
         write_file(imp / f"{opt}_on.json", json.dumps({
-            "function": "set_components",
+            "type": "set_components",
             "components": {
                 f"xpbook:{opt}": {}
             }
@@ -173,9 +173,9 @@ def add_tomes():
 
 def predicate_json(score: str):
     return json.dumps({
-        "condition": "inverted",
+        "type": "inverted",
         "term": {
-            "condition": "entity_scores",
+            "type": "entity_scores",
             "entity": "this",
             "scores": {
                 score: 0
@@ -326,18 +326,18 @@ def configure_xp_tome_fn():
         ScoreboardCmd.Players.set(Executor(), SCORE_OBJS.configure_xp_tomes, 0)
     )
 
-def write_trans_item_modifer(spec: DiscSpec) -> typing.Callable[[], str]:
+def write_trans_item_modifer(spec: DiscSpec):
     return json.dumps({
-        "function": "set_components",
+        "type": "set_components",
         "components": {
             "minecraft:jukebox_playable": f"{DATA.our_namespace}:{spec.id}",
             "minecraft:lore": spec.lore
         }
     })
 
-def write_restore_item_modifer(id: str) -> typing.Callable[[], str]:
+def write_restore_item_modifer(id: str):
     return json.dumps({
-        "function": "set_components",
+        "type": "set_components",
         "components": {
             "minecraft:jukebox_playable": f"minecraft:{id}",
             "minecraft:lore": []

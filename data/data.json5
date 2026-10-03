@@ -2,8 +2,8 @@
     mode: "release",
     common_version: 4,
     specific_version: {
-        datapack: 0,
-        respack: 0,
+        datapack: 1,
+        respack: 1,
     },
     vanilla_discs: [
         "11",
@@ -442,12 +442,12 @@
     ],
     pack_format: {
         datapack: [
-            107,
-            1,
+            121,
+            0,
         ],
         respack: [
-            88,
-            0,
+            97,
+            1,
         ],
     },
     our_namespace: "custom_discs",

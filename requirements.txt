@@ -1,0 +1,4 @@
+pydub
+json5
+audioop-lts
+rich

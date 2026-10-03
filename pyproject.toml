@@ -1,5 +1,0 @@
-[project]
-name = "DataResourceDisc2"
-version = "1.2.2"
-requires-python = ">=3.14"
-dependencies = ["pydub", "audioop-lts", "json5"]

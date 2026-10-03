@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import TracebackType
 from commands import CommandSyntaxException
 from data import deinit, init
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -7,10 +8,10 @@ import logging
 import sys
 import traceback
 
-def excepthook(exc_type, exc, tb):
+def excepthook(exc_type: type[BaseException], exc: BaseException, tb: TracebackType | None):
     if isinstance(exc, CommandSyntaxException):
         print(exc.source)
-        print(" " * exc.position[0] + "^" * (exc.postion[1] - exc.position[0]))
+        print(" " * exc.position[0] + "^" * (exc.position[1] - exc.position[0]))
         print(f"{exc_type.__name__}: {exc}")
         print()
         traceback.print_tb(tb)
